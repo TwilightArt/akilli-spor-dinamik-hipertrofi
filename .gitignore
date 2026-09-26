@@ -1,0 +1,22 @@
+# Environment & Secrets
+.env
+*.env.local
+
+# SQLite local database files
+database/*.sqlite
+database/*.sqlite-journal
+database/*.sqlite-wal
+database/*.sqlite-shm
+database/*.db
+
+# Logs & Temporary files
+*.log
+tests/*.txt
+tests/*_output.html
+
+# OS and Editor directories
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.tmp

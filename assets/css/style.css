@@ -1,0 +1,28 @@
+/* Production UI Enhancements & Micro-animations */
+@keyframes pulseSubtle {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.85; transform: scale(1.02); }
+}
+
+.animate-pulse-subtle {
+    animation: pulseSubtle 3s infinite ease-in-out;
+}
+
+/* Glassmorphism utility */
+.glass-panel {
+    background: rgba(17, 24, 39, 0.85);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* Smooth button tap feedback */
+button:active, a:active {
+    transform: scale(0.98);
+}
+
+/* High contrast numbers for gym readability */
+.font-number {
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.02em;
+}
