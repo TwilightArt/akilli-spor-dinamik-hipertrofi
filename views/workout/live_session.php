@@ -300,7 +300,7 @@ document.addEventListener('alpine:init', () => {
             <button type="button" @click="adjustTimer(30)" class="px-2.5 py-1.5 rounded-lg bg-slate-800/80 hover:bg-slate-700 text-xs font-bold text-slate-300 border border-slate-700">
                 +30s
             </button>
-            <button type="button" @click="toggleTimer()" class="w-9 h-9 rounded-lg bg-brand-600 text-white flex items-center justify-center shadow-md">
+            <button type="button" @click="toggleTimer()" aria-label="Zamanlayıcıyı Başlat/Durdur" class="w-9 h-9 rounded-lg bg-brand-600 text-white flex items-center justify-center shadow-md">
                 <i :class="timerRunning ? 'fa-solid fa-pause text-xs' : 'fa-solid fa-play text-xs'"></i>
             </button>
         </div>

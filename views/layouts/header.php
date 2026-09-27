@@ -198,7 +198,7 @@ unset($_SESSION['flash']);
                         'fa-solid fa-circle-info text-blue-400')) ?>"></i>
                     <p class="text-sm font-medium"><?= Security::escape($flash['message']) ?></p>
                 </div>
-                <button @click="show = false" class="text-slate-400 hover:text-white transition-colors">
+                <button @click="show = false" aria-label="Kapat" class="text-slate-400 hover:text-white transition-colors">
                     <i class="fa-solid fa-xmark"></i>
                 </button>
             </div>
