@@ -158,17 +158,23 @@ class ProfileController extends Controller
         // Clear past reports from today or refresh active reports
         $this->db->prepare("DELETE FROM injury_reports WHERE user_id = :uid")->execute(['uid' => $userId]);
 
-        $insertStmt = $this->db->prepare("
-            INSERT INTO injury_reports (user_id, joint_area, severity, reported_date, notes) 
-            VALUES (:uid, :joint, 'moderate', :rdate, 'Kullanıcı profilinden bildirildi')
-        ");
         $today = date('Y-m-d');
-        foreach ($cleanJoints as $joint) {
-            $insertStmt->execute([
-                'uid'   => $userId,
-                'joint' => $joint,
+        if (!empty($cleanJoints)) {
+            $values = [];
+            $params = [
+                'uid' => $userId,
                 'rdate' => $today
-            ]);
+            ];
+
+            $i = 0;
+            foreach ($cleanJoints as $joint) {
+                $values[] = "(:uid, :joint_$i, 'moderate', :rdate, 'Kullanıcı profilinden bildirildi')";
+                $params["joint_$i"] = $joint;
+                $i++;
+            }
+
+            $sql = "INSERT INTO injury_reports (user_id, joint_area, severity, reported_date, notes) VALUES " . implode(", ", $values);
+            $this->db->prepare($sql)->execute($params);
         }
 
         // 4. Regenerate weekly program if requested or if fitness level changed
