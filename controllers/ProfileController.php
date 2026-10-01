@@ -213,7 +213,9 @@ class ProfileController extends Controller
         }
 
         // Verify current password
-        $userWithHash = $this->db->query("SELECT password_hash FROM users WHERE id = {$userId}")->fetch();
+        $stmt = $this->db->prepare("SELECT password_hash FROM users WHERE id = :id");
+        $stmt->execute(['id' => $userId]);
+        $userWithHash = $stmt->fetch();
         if (!$userWithHash || !password_verify($currentPassword, $userWithHash['password_hash'])) {
             $this->setFlash('danger', 'Mevcut parolanızı hatalı girdiniz.');
             $this->redirect('/profile');
