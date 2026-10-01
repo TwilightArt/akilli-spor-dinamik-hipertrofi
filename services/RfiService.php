@@ -3,7 +3,6 @@ declare(strict_types=1);
 
 namespace App\Services;
 
-use App\Config\Constants;
 use App\Config\Database;
 use App\Models\User;
 use PDO;
