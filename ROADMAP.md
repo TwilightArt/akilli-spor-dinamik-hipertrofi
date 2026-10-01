@@ -5,8 +5,8 @@
 
 ## 1. Faz 1: İnteraktif Hesaplayıcılar
 - [x] 1RM (Tamamlandı)
-- [ ] BMR/TDEE
-- [ ] Makro Dağılımı
+- [x] BMR/TDEE (Tamamlandı)
+- [x] Makro Dağılımı (Tamamlandı)
 - [ ] Günlük Su İhtiyacı
 - [x] Halter Plaka / Plate Calculator (Tamamlandı)
 
