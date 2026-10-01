@@ -19,7 +19,7 @@ abstract class Controller
     protected function render(string $viewPath, array $data = [], bool $withLayout = true): void
     {
         // Extract variables for view access
-        extract($data);
+        extract($data, EXTR_SKIP);
 
         // Standard layout helpers
         $currentUser = $this->getCurrentUser();
