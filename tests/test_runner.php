@@ -8,11 +8,16 @@ declare(strict_types=1);
  * ============================================================================
  */
 
+require_once __DIR__ . '/../config/database.php';
 require_once __DIR__ . '/../config/constants.php';
+require_once __DIR__ . '/../core/Model.php';
+require_once __DIR__ . '/../models/Exercise.php';
 require_once __DIR__ . '/../services/PlateSolverService.php';
 require_once __DIR__ . '/../services/RfiService.php';
 
+use App\Config\Database;
 use App\Config\Constants;
+use App\Models\Exercise;
 use App\Services\PlateSolverService;
 use App\Services\RfiService;
 
@@ -151,6 +156,56 @@ assertTest(
     abs($consecutiveRir0Drop - 45.0) < 0.001,
     "Calculated: {$consecutiveRir0Drop} kg"
 );
+
+// ----------------------------------------------------------------------------
+// TEST 6: Exercise Model getRegression Method
+// ----------------------------------------------------------------------------
+echo "\n6. Exercise::getRegression Tests:\n";
+$db = Database::getConnection();
+$exerciseModel = new Exercise();
+
+try {
+    $db->beginTransaction();
+
+    $db->exec("INSERT INTO `exercises` (`name`, `movement_pattern`, `primary_muscle_group`, `required_equipment`, `difficulty_level`) VALUES ('Regression Pushup', 'push_horizontal', 'chest', 'bodyweight', 'absolute_beginner')");
+    $regressionId = (int)$db->lastInsertId();
+
+    $stmt = $db->prepare("INSERT INTO `exercises` (`name`, `movement_pattern`, `primary_muscle_group`, `required_equipment`, `is_regression_of`, `difficulty_level`) VALUES ('Standard Pushup Runner', 'push_horizontal', 'chest', 'bodyweight', :regressionId, 'beginner')");
+    $stmt->execute(['regressionId' => $regressionId]);
+    $mainId = (int)$db->lastInsertId();
+
+    $db->exec("INSERT INTO `exercises` (`name`, `movement_pattern`, `primary_muscle_group`, `required_equipment`, `difficulty_level`) VALUES ('Squat Runner', 'squat', 'legs', 'bodyweight', 'beginner')");
+    $unrelatedId = (int)$db->lastInsertId();
+
+    $regression = $exerciseModel->getRegression($mainId);
+    assertTest(
+        "Exercise with regression returns correct regression array",
+        $regression !== null && (int)$regression['id'] === $regressionId && $regression['name'] === 'Regression Pushup',
+        "Expected ID {$regressionId}, got " . ($regression ? print_r($regression, true) : 'null')
+    );
+
+    $noRegression = $exerciseModel->getRegression($unrelatedId);
+    assertTest(
+        "Exercise without regression returns null",
+        $noRegression === null,
+        "Expected null, got " . print_r($noRegression, true)
+    );
+
+    $invalidRegression = $exerciseModel->getRegression(999999);
+    assertTest(
+        "Invalid exercise ID returns null",
+        $invalidRegression === null,
+        "Expected null, got " . print_r($invalidRegression, true)
+    );
+
+} catch (Exception $e) {
+    echo "  [FAIL] Test setup failed: " . $e->getMessage() . "\n";
+    $failed++;
+} finally {
+    if ($db->inTransaction()) {
+        $db->rollBack();
+    }
+}
 
 echo "\n================================================================\n";
 echo "SUMMARY: Passed: {$passed} | Failed: {$failed}\n";
