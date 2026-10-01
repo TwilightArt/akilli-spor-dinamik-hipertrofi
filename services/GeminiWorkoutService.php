@@ -315,10 +315,8 @@ class GeminiWorkoutService
                 VALUES (:pid, :dow, :focus)
             ");
 
-            $stmtEx = $this->db->prepare("
-                INSERT INTO program_exercises (program_day_id, exercise_id, order_in_session, target_sets, target_reps_min, target_reps_max)
-                VALUES (:day_id, :eid, :ord, :sets, :rmin, :rmax)
-            ");
+            $exerciseValues = [];
+            $exerciseParams = [];
 
             foreach ($programData['days'] as $day) {
                 $stmtDay->execute([
@@ -329,14 +327,25 @@ class GeminiWorkoutService
                 $dayId = (int)$this->db->lastInsertId();
 
                 foreach ($day['exercises'] as $ex) {
-                    $stmtEx->execute([
-                        'day_id' => $dayId,
-                        'eid'    => (int)$ex['exercise_id'],
-                        'ord'    => (int)$ex['order_in_session'],
-                        'sets'   => (int)($ex['target_sets'] ?? 3),
-                        'rmin'   => (int)($ex['target_reps_min'] ?? 8),
-                        'rmax'   => (int)($ex['target_reps_max'] ?? 12)
-                    ]);
+                    $exerciseValues[] = '(?, ?, ?, ?, ?, ?)';
+                    $exerciseParams[] = $dayId;
+                    $exerciseParams[] = (int)$ex['exercise_id'];
+                    $exerciseParams[] = (int)$ex['order_in_session'];
+                    $exerciseParams[] = (int)($ex['target_sets'] ?? 3);
+                    $exerciseParams[] = (int)($ex['target_reps_min'] ?? 8);
+                    $exerciseParams[] = (int)($ex['target_reps_max'] ?? 12);
+                }
+            }
+
+            if (!empty($exerciseValues)) {
+                $chunkSize = 50;
+                $chunkedValues = array_chunk($exerciseValues, $chunkSize);
+                $chunkedParams = array_chunk($exerciseParams, $chunkSize * 6);
+
+                for ($i = 0; $i < count($chunkedValues); $i++) {
+                    $sql = "INSERT INTO program_exercises (program_day_id, exercise_id, order_in_session, target_sets, target_reps_min, target_reps_max) VALUES " . implode(', ', $chunkedValues[$i]);
+                    $stmtEx = $this->db->prepare($sql);
+                    $stmtEx->execute($chunkedParams[$i]);
                 }
             }
 
