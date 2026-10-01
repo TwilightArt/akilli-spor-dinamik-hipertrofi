@@ -16,7 +16,6 @@ use PDO;
 class ProfileController extends Controller
 {
     private User $userModel;
-    private DailyWeighIn $weighInModel;
     private InjuryFilterService $injuryFilter;
     private RfiService $rfiService;
     private GeminiWorkoutService $workoutService;
@@ -26,7 +25,6 @@ class ProfileController extends Controller
     {
         parent::__construct();
         $this->userModel = new User();
-        $this->weighInModel = new DailyWeighIn();
         $this->injuryFilter = new InjuryFilterService();
         $this->rfiService = new RfiService();
         $this->workoutService = new GeminiWorkoutService();
@@ -144,7 +142,8 @@ class ProfileController extends Controller
         ]);
 
         // 2. Log weight if updated
-        $this->weighInModel->logWeight($userId, $currentWeightKg, date('Y-m-d'), 'Profil Ayarları Güncellemesi');
+        $weighInModel = new DailyWeighIn();
+        $weighInModel->logWeight($userId, $currentWeightKg, date('Y-m-d'), 'Profil Ayarları Güncellemesi');
 
         // 3. Update Joint Complaints / Injury Reports
         $submittedInjuries = $_POST['injuries'] ?? [];
