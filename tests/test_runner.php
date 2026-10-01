@@ -152,6 +152,87 @@ assertTest(
     "Calculated: {$consecutiveRir0Drop} kg"
 );
 
+// ----------------------------------------------------------------------------
+// TEST 6: AnalyticsService getExerciseDetailedSets with Database
+// ----------------------------------------------------------------------------
+echo "\n6. AnalyticsService getExerciseDetailedSets logic verification:\n";
+require_once __DIR__ . '/../config/database.php';
+require_once __DIR__ . '/../services/AnalyticsService.php';
+use App\Config\Database;
+use App\Services\AnalyticsService;
+
+putenv("DB_DRIVER=sqlite");
+$db = Database::getConnection();
+
+$db->beginTransaction();
+
+try {
+    // Insert dummy user
+    $db->exec("INSERT INTO users (id, email, password_hash, name, gender, birth_date, height_cm) VALUES (9999, 'test@test.com', 'hash', 'Test User', 'male', '1990-01-01', 180.0)");
+
+    // Insert dummy exercise
+    $db->exec("INSERT INTO exercises (id, name, movement_pattern, primary_muscle_group, required_equipment, difficulty_level)
+               VALUES (9999, 'Test Exercise', 'push_horizontal', 'chest', 'bodyweight', 'beginner')");
+
+    // Insert dummy session
+    $db->exec("INSERT INTO workout_sessions (id, user_id, started_at) VALUES (9999, 9999, '2023-10-01 10:00:00')");
+
+    // Insert dummy logs with specific weights and reps
+    $stmt = $db->prepare("
+        INSERT INTO workout_logs (user_id, session_id, exercise_id, set_number, actual_weight, actual_reps, rir_bucket, created_at)
+        VALUES (:uid, :sid, :eid, :set_num, :aw, :ar, :rir, :cat)
+    ");
+
+    // Set 1: 50kg x 10
+    $stmt->execute(['uid' => 9999, 'sid' => 9999, 'eid' => 9999, 'set_num' => 1, 'aw' => 50.0, 'ar' => 10, 'rir' => '1-2', 'cat' => '2023-10-01 10:05:00']);
+    // Set 2: 55kg x 8 (PR)
+    $stmt->execute(['uid' => 9999, 'sid' => 9999, 'eid' => 9999, 'set_num' => 2, 'aw' => 55.0, 'ar' => 8, 'rir' => '1-2', 'cat' => '2023-10-01 10:10:00']);
+    // Set 3: 52.5kg x 10
+    $stmt->execute(['uid' => 9999, 'sid' => 9999, 'eid' => 9999, 'set_num' => 3, 'aw' => 52.5, 'ar' => 10, 'rir' => '0', 'cat' => '2023-10-01 10:15:00']);
+
+    $analyticsService = new AnalyticsService();
+    $sets = $analyticsService->getExerciseDetailedSets(9999, 9999);
+
+    assertTest(
+        "AnalyticsService returns correct number of sets",
+        count($sets) === 3,
+        "Expected 3 sets, got " . count($sets)
+    );
+
+    if (count($sets) === 3) {
+        // Sets should be ordered by created_at DESC, set_number DESC
+        $set1 = $sets[2]; // set_number 1
+        $set2 = $sets[1]; // set_number 2
+        $set3 = $sets[0]; // set_number 3
+
+        assertTest(
+            "Sets are ordered correctly (created_at DESC, set_number DESC)",
+            $set3['set_number'] == 3 && $set2['set_number'] == 2 && $set1['set_number'] == 1,
+            "Got set_numbers: {$set3['set_number']}, {$set2['set_number']}, {$set1['set_number']}"
+        );
+
+        // Check PR logic: max weight is 55.0 on set 2
+        assertTest(
+            "is_pr flag correctly identifies highest weight",
+            $set2['is_pr'] === true && $set1['is_pr'] === false && $set3['is_pr'] === false,
+            "Set2 is_pr: " . ($set2['is_pr']?'true':'false') . " (Expected true)"
+        );
+
+        // Check 1RM calculation: 50 * (1 + 10/30) = 50 * 1.333... = 66.7
+        $expected1rm = round(50.0 * (1.0 + (10 / 30.0)), 1);
+        assertTest(
+            "estimated_1rm correctly calculated",
+            abs((float)$set1['estimated_1rm'] - $expected1rm) < 0.001,
+            "Expected: {$expected1rm}, Got: {$set1['estimated_1rm']}"
+        );
+    }
+} catch (\Throwable $e) {
+    echo "  [FAIL] Exception thrown during AnalyticsService DB test: " . $e->getMessage() . "\n";
+    $failed++;
+} finally {
+    $db->rollBack();
+}
+
 echo "\n================================================================\n";
 echo "SUMMARY: Passed: {$passed} | Failed: {$failed}\n";
 echo "================================================================\n";
