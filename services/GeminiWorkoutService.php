@@ -19,18 +19,15 @@ class GeminiWorkoutService
     private PDO $db;
     private Exercise $exerciseModel;
     private Equipment $equipmentModel;
-    private InjuryFilterService $injuryFilter;
 
     public function __construct(
         ?PDO $db = null,
         ?Exercise $exerciseModel = null,
-        ?Equipment $equipmentModel = null,
-        ?InjuryFilterService $injuryFilter = null
+        ?Equipment $equipmentModel = null
     ) {
         $this->db = $db ?? Database::getConnection();
         $this->exerciseModel = $exerciseModel ?? new Exercise();
         $this->equipmentModel = $equipmentModel ?? new Equipment();
-        $this->injuryFilter = $injuryFilter ?? new InjuryFilterService();
     }
 
     /**
