@@ -89,61 +89,37 @@ class RfiService
      */
     public function evaluateFitnessTier(int $pushups, int $chinups, int $squats, int $corePlankSec = 30): array
     {
-        // 1. Push Score (Şınav - İtiş Kuvveti): 0 - 100
-        $pushScore = 0.0;
-        if ($pushups >= 30) {
-            $pushScore = 100.0;
-        } elseif ($pushups >= 20) {
-            $pushScore = 75.0 + (($pushups - 20) / 10.0) * 25.0;
-        } elseif ($pushups >= 10) {
-            $pushScore = 50.0 + (($pushups - 10) / 10.0) * 25.0;
-        } elseif ($pushups >= 3) {
-            $pushScore = 20.0 + (($pushups - 3) / 7.0) * 30.0;
-        } else {
-            $pushScore = ($pushups / 3.0) * 20.0;
-        }
+        $pushScore = $this->calculateScoreFromThresholds($pushups, [
+            [30, 100.0],
+            [20, 75.0],
+            [10, 50.0],
+            [3, 20.0],
+            [0, 0.0]
+        ]);
 
-        // 2. Pull Score (Barfiks / Kapı Çekişi): 0 - 100
-        $pullScore = 0.0;
-        if ($chinups >= 15) {
-            $pullScore = 100.0;
-        } elseif ($chinups >= 8) {
-            $pullScore = 75.0 + (($chinups - 8) / 7.0) * 25.0;
-        } elseif ($chinups >= 4) {
-            $pullScore = 50.0 + (($chinups - 4) / 4.0) * 25.0;
-        } elseif ($chinups >= 1) {
-            $pullScore = 20.0 + (($chinups - 1) / 3.0) * 30.0;
-        } else {
-            $pullScore = 0.0;
-        }
+        $pullScore = $this->calculateScoreFromThresholds($chinups, [
+            [15, 100.0],
+            [8, 75.0],
+            [4, 50.0],
+            [1, 20.0],
+            [0, 0.0]
+        ]);
 
-        // 3. Leg Score (Vücut Ağırlığı Squat): 0 - 100
-        $legScore = 0.0;
-        if ($squats >= 50) {
-            $legScore = 100.0;
-        } elseif ($squats >= 30) {
-            $legScore = 75.0 + (($squats - 30) / 20.0) * 25.0;
-        } elseif ($squats >= 15) {
-            $legScore = 50.0 + (($squats - 15) / 15.0) * 25.0;
-        } elseif ($squats >= 5) {
-            $legScore = 20.0 + (($squats - 5) / 10.0) * 30.0;
-        } else {
-            $legScore = ($squats / 5.0) * 20.0;
-        }
+        $legScore = $this->calculateScoreFromThresholds($squats, [
+            [50, 100.0],
+            [30, 75.0],
+            [15, 50.0],
+            [5, 20.0],
+            [0, 0.0]
+        ]);
 
-        // 4. Core Score (Mekik / Ön Plank Süresi saniye): 0 - 100
-        $coreScore = 0.0;
-        if ($corePlankSec >= 120) {
-            $coreScore = 100.0;
-        } elseif ($corePlankSec >= 75) {
-            $coreScore = 75.0 + (($corePlankSec - 75) / 45.0) * 25.0;
-        } elseif ($corePlankSec >= 40) {
-            $coreScore = 50.0 + (($corePlankSec - 40) / 35.0) * 25.0;
-        } elseif ($corePlankSec >= 20) {
-            $coreScore = 20.0 + (($corePlankSec - 20) / 20.0) * 30.0;
-        } else {
-            $coreScore = ($corePlankSec / 20.0) * 20.0;
-        }
+        $coreScore = $this->calculateScoreFromThresholds($corePlankSec, [
+            [120, 100.0],
+            [75, 75.0],
+            [40, 50.0],
+            [20, 20.0],
+            [0, 0.0]
+        ]);
 
         // Weighted composite conditioning score: Push %25, Pull %25, Leg %25, Core %25
         $compositeScore = round(($pushScore * 0.25) + ($pullScore * 0.25) + ($legScore * 0.25) + ($coreScore * 0.25), 1);
@@ -230,5 +206,37 @@ class RfiService
         ]);
 
         return $adjusted;
+    }
+
+    /**
+     * Helper method to interpolate scores based on an array of thresholds.
+     * Thresholds should be sorted in descending order of input value.
+     * Each threshold is an array [inputValue, scoreValue].
+     */
+    private function calculateScoreFromThresholds(int $value, array $thresholds): float
+    {
+        $prevInput = null;
+        $prevScore = null;
+
+        foreach ($thresholds as $index => $point) {
+            $currentInput = $point[0];
+            $currentScore = $point[1];
+
+            if ($value >= $currentInput) {
+                if ($index === 0) {
+                    return $currentScore;
+                }
+
+                $inputDiff = $prevInput - $currentInput;
+                $scoreDiff = $prevScore - $currentScore;
+
+                return $currentScore + (($value - $currentInput) / $inputDiff) * $scoreDiff;
+            }
+
+            $prevInput = $currentInput;
+            $prevScore = $currentScore;
+        }
+
+        return 0.0;
     }
 }
