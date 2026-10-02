@@ -51,6 +51,7 @@ spl_autoload_register(function (string $class) {
 });
 
 use App\Core\Router;
+require_once __DIR__ . '/config/database.php';
 use App\Core\Security;
 use App\Controllers\AuthController;
 use App\Controllers\OnboardingController;
@@ -59,6 +60,7 @@ use App\Controllers\WeighInController;
 use App\Controllers\ProfileController;
 use App\Controllers\AnalyticsController;
 use App\Controllers\ApiController;
+use App\Controllers\CalculatorController;
 
 // Start secure session
 Security::startSession();
@@ -109,6 +111,11 @@ $router->get('/workout/live', [WorkoutController::class, 'liveSession'], ['auth'
 $router->get('/workout/live/{id}', [WorkoutController::class, 'liveSession'], ['auth']);
 $router->post('/workout/end', [WorkoutController::class, 'endSession'], ['auth']);
 $router->post('/workout/custom_program', [WorkoutController::class, 'createCustomProgram'], ['auth']);
+
+// ----------------------------------------------------------------------------
+// Calculators Routes
+// ----------------------------------------------------------------------------
+$router->get('/calculators/1rm', [CalculatorController::class, 'index'], ['auth']);
 
 // ----------------------------------------------------------------------------
 // Weigh-In & Trend Routes
