@@ -111,15 +111,43 @@ class InjuryFilterService
     public function filterProgramExercises(int $userId, array $exerciseList, array $availableEquipment): array
     {
         $injuredJoints = $this->getActiveInjuredJoints($userId);
-        if (empty($injuredJoints)) {
+        if (empty($injuredJoints) || empty($exerciseList)) {
             return $exerciseList;
         }
 
+        // Batch fetch harmful exercises
+        $exerciseIds = array_values(array_unique(array_map(function($item) {
+            return (int)$item['exercise_id'];
+        }, $exerciseList)));
+
+        $placeholdersEx = implode(',', array_fill(0, count($exerciseIds), '?'));
+        $placeholdersJoints = implode(',', array_fill(0, count($injuredJoints), '?'));
+
+        $sql = "
+            SELECT DISTINCT exercise_id
+            FROM exercise_joint_stress
+            WHERE exercise_id IN ({$placeholdersEx})
+              AND joint_area IN ({$placeholdersJoints})
+        ";
+
+        $params = array_merge($exerciseIds, $injuredJoints);
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute($params);
+        $harmfulIds = $stmt->fetchAll(PDO::FETCH_COLUMN) ?: [];
+        $harmfulMap = array_flip($harmfulIds);
+
+        $alternativesCache = [];
         $sanitized = [];
+
         foreach ($exerciseList as $item) {
             $exerciseId = (int)$item['exercise_id'];
-            if ($this->isExerciseHarmful($exerciseId, $injuredJoints)) {
-                $alt = $this->findSafeAlternative($exerciseId, $injuredJoints, $availableEquipment);
+
+            if (isset($harmfulMap[$exerciseId])) {
+                if (!array_key_exists($exerciseId, $alternativesCache)) {
+                    $alternativesCache[$exerciseId] = $this->findSafeAlternative($exerciseId, $injuredJoints, $availableEquipment);
+                }
+
+                $alt = $alternativesCache[$exerciseId];
                 if ($alt) {
                     $item['exercise_id'] = (int)$alt['id'];
                     $item['exercise_name'] = $alt['name'];
