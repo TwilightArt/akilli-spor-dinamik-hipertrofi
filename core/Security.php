@@ -5,7 +5,6 @@ namespace App\Core;
 
 use App\Config\Database;
 use App\Config\Constants;
-use PDO;
 
 /**
  * Security & Hardening Core Helper
