@@ -110,6 +110,12 @@ class AnalyticsService
      */
     public function getExerciseDetailedSets(int $userId, int $exerciseId): array
     {
+        // Determine all-time PR weight efficiently via DB
+        $maxSql = "SELECT MAX(actual_weight) FROM workout_logs WHERE user_id = :uid AND exercise_id = :eid";
+        $maxStmt = $this->db->prepare($maxSql);
+        $maxStmt->execute(['uid' => $userId, 'eid' => $exerciseId]);
+        $allTimeMax = (float)$maxStmt->fetchColumn();
+
         $sql = "
             SELECT 
                 wl.id,
@@ -132,15 +138,6 @@ class AnalyticsService
         $stmt = $this->db->prepare($sql);
         $stmt->execute(['uid' => $userId, 'eid' => $exerciseId]);
         $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-        // Determine all-time PR weight
-        $allTimeMax = 0.0;
-        foreach ($rows as $r) {
-            $w = (float)$r['actual_weight'];
-            if ($w > $allTimeMax) {
-                $allTimeMax = $w;
-            }
-        }
 
         foreach ($rows as &$r) {
             $r['is_pr'] = ((float)$r['actual_weight'] >= $allTimeMax && $allTimeMax > 0);
