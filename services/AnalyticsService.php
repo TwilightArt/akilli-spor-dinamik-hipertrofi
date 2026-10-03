@@ -28,6 +28,37 @@ class AnalyticsService
         $this->db = $db ?? Database::getConnection();
     }
 
+    public function getWeeklyMuscleHeatmap(int $userId): array
+    {
+        // 7 days ago
+        $date = date('Y-m-d', strtotime('-7 days'));
+        
+        $sql = "SELECT e.primary_muscle_group, COUNT(wl.id) as set_count 
+                FROM workout_logs wl
+                JOIN exercises e ON wl.exercise_id = e.id
+                WHERE wl.user_id = :uid 
+                  AND wl.created_at >= :date
+                  
+                GROUP BY e.primary_muscle_group";
+                
+        $stmt = $this->db->prepare($sql);
+        $stmt->bindValue(':uid', $userId, \PDO::PARAM_INT);
+        $stmt->bindValue(':date', $date . ' 00:00:00', \PDO::PARAM_STR);
+        $stmt->execute();
+        
+        $results = $stmt->fetchAll();
+        $heatmap = [
+            'chest' => 0, 'back' => 0, 'legs' => 0, 
+            'shoulders' => 0, 'arms' => 0, 'core' => 0
+        ];
+        
+        foreach ($results as $r) {
+            $heatmap[$r['primary_muscle_group']] = (int)$r['set_count'];
+        }
+        
+        return $heatmap;
+    }
+
     /**
      * Get all exercises for which the user has logged sets, augmented with active program exercises
      */
@@ -308,3 +339,5 @@ class AnalyticsService
         }
     }
 }
+
+

@@ -26,6 +26,8 @@ class AnalyticsController extends Controller
         $allPeaks = $this->analyticsService->getAllExercisesPeakWeights($userId);
 
         // Requested exercise or default to top exercise
+        $heatmap = $this->analyticsService->getWeeklyMuscleHeatmap($userId);
+
         $selectedExerciseId = isset($_GET['exercise_id']) ? (int)$_GET['exercise_id'] : 0;
         
         $activeExercise = null;
@@ -142,3 +144,5 @@ class AnalyticsController extends Controller
         exit;
     }
 }
+
+
