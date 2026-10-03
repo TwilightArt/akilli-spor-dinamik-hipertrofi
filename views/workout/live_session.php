@@ -511,29 +511,29 @@ document.addEventListener('alpine:init', () => {
             <div class="grid grid-cols-2 gap-4">
                 <!-- Weight Input -->
                 <div class="p-3.5 rounded-2xl bg-slate-900 border border-slate-800">
-                    <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">Ağırlık (kg)</label>
+                    <label for="weight_input" class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">Ağırlık (kg)</label>
                     <div class="flex items-center justify-between gap-1">
-                        <button type="button" @click="currentExercise.current_weight = Math.max(0, (parseFloat(currentExercise.current_weight || 0) - 2.5).toFixed(1))"
-                            class="w-9 h-9 rounded-xl bg-slate-800 text-slate-200 active:bg-slate-700 font-bold text-lg flex items-center justify-center hover:bg-slate-700 transition-colors">-</button>
-                        <input type="number" step="0.5" x-model.number="currentExercise.current_weight"
-                            class="w-full bg-transparent text-center text-xl font-black text-white focus:outline-none">
-                        <button type="button" @click="currentExercise.current_weight = (parseFloat(currentExercise.current_weight || 0) + 2.5).toFixed(1)"
-                            class="w-9 h-9 rounded-xl bg-slate-800 text-slate-200 active:bg-slate-700 font-bold text-lg flex items-center justify-center hover:bg-slate-700 transition-colors">+</button>
+                        <button type="button" aria-label="Ağırlığı 2.5 kg azalt" @click="currentExercise.current_weight = Math.max(0, (parseFloat(currentExercise.current_weight || 0) - 2.5).toFixed(1))"
+                            class="w-9 h-9 rounded-xl bg-slate-800 text-slate-200 active:bg-slate-700 font-bold text-lg flex items-center justify-center hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-brand-500 transition-colors">-</button>
+                        <input type="number" id="weight_input" step="0.5" x-model.number="currentExercise.current_weight"
+                            class="w-full bg-transparent text-center text-xl font-black text-white focus:outline-none focus:ring-2 focus:ring-brand-500 rounded-md">
+                        <button type="button" aria-label="Ağırlığı 2.5 kg artır" @click="currentExercise.current_weight = (parseFloat(currentExercise.current_weight || 0) + 2.5).toFixed(1)"
+                            class="w-9 h-9 rounded-xl bg-slate-800 text-slate-200 active:bg-slate-700 font-bold text-lg flex items-center justify-center hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-brand-500 transition-colors">+</button>
                     </div>
                 </div>
 
                 <!-- Reps Input -->
                 <div class="p-3.5 rounded-2xl bg-slate-900 border border-slate-800">
-                    <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">
+                    <label for="reps_input" class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">
                         <span x-text="currentExercise?.movement_pattern === 'core' ? 'Süre (sn)' : 'Yapılan Tekrar'"></span>
                     </label>
                     <div class="flex items-center justify-between gap-1">
-                        <button type="button" @click="actualReps = Math.max(0, actualReps - 1)"
-                            class="w-9 h-9 rounded-xl bg-slate-800 text-slate-200 active:bg-slate-700 font-bold text-lg flex items-center justify-center hover:bg-slate-700 transition-colors">-</button>
-                        <input type="number" x-model.number="actualReps"
-                            class="w-full bg-transparent text-center text-xl font-black text-white focus:outline-none">
-                        <button type="button" @click="actualReps++"
-                            class="w-9 h-9 rounded-xl bg-slate-800 text-slate-200 active:bg-slate-700 font-bold text-lg flex items-center justify-center hover:bg-slate-700 transition-colors">+</button>
+                        <button type="button" aria-label="Tekrar sayısını 1 azalt" @click="actualReps = Math.max(0, actualReps - 1)"
+                            class="w-9 h-9 rounded-xl bg-slate-800 text-slate-200 active:bg-slate-700 font-bold text-lg flex items-center justify-center hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-brand-500 transition-colors">-</button>
+                        <input type="number" id="reps_input" x-model.number="actualReps"
+                            class="w-full bg-transparent text-center text-xl font-black text-white focus:outline-none focus:ring-2 focus:ring-brand-500 rounded-md">
+                        <button type="button" aria-label="Tekrar sayısını 1 artır" @click="actualReps++"
+                            class="w-9 h-9 rounded-xl bg-slate-800 text-slate-200 active:bg-slate-700 font-bold text-lg flex items-center justify-center hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-brand-500 transition-colors">+</button>
                     </div>
                 </div>
             </div>
@@ -575,13 +575,13 @@ document.addEventListener('alpine:init', () => {
                 <div class="flex items-center gap-3">
                     <i class="fa-solid fa-triangle-exclamation text-amber-400 text-lg"></i>
                     <div>
-                        <span class="text-xs font-bold text-white block">Form Bozuldu mu?</span>
-                        <span class="text-[10px] text-slate-400">Momentum kullanıldıysa veya eklem açısı bozulduysa işaretleyin (-%15 emniyet).</span>
+                        <span id="form_breakdown_label" class="text-xs font-bold text-white block">Form Bozuldu mu?</span>
+                        <span id="form_breakdown_desc" class="text-[10px] text-slate-400">Momentum kullanıldıysa veya eklem açısı bozulduysa işaretleyin (-%15 emniyet).</span>
                     </div>
                 </div>
                 <label class="relative inline-flex items-center cursor-pointer">
-                    <input type="checkbox" x-model="formBreakdown" class="sr-only peer">
-                    <div class="w-11 h-6 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-amber-500"></div>
+                    <input type="checkbox" x-model="formBreakdown" aria-labelledby="form_breakdown_label" aria-describedby="form_breakdown_desc" class="sr-only peer">
+                    <div class="w-11 h-6 bg-slate-800 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-amber-500 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-amber-500"></div>
                 </label>
             </div>
 
