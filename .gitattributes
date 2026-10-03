@@ -1,0 +1,9 @@
+/tests/ export-ignore
+/database/local.sqlite export-ignore
+/database/seed_demo.php export-ignore
+/database/fix_samet.php export-ignore
+/.gitattributes export-ignore
+/implementation_plan.md export-ignore
+/jules_audit_report.md export-ignore
+/roadmap_and_ui_plan.md export-ignore
+
