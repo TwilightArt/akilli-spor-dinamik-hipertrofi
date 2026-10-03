@@ -4,7 +4,6 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Config\Database;
-use App\Models\User;
 use PDO;
 
 /**
@@ -14,12 +13,10 @@ use PDO;
 class RfiService
 {
     private ?PDO $db;
-    private ?User $userModel;
 
-    public function __construct(?PDO $db = null, ?User $userModel = null)
+    public function __construct(?PDO $db = null)
     {
         $this->db = $db;
-        $this->userModel = $userModel;
     }
 
     private function getDb(): PDO
