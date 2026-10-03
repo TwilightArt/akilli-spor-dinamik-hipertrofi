@@ -20,7 +20,7 @@ $password = 'demo123456';
 
 $existing = $userModel->findByEmail($email);
 if (!$existing) {
-    $uid = $userModel->register('Demo Sporcu', $email, $password, 'male', '1996-06-20', 180.0, 'intermediate');
+    $uid = $userModel->register('Demo Sporcu', $email, $password, 'male', '1996-06-20', 180.0, 75.0, 'intermediate');
     $eq = new Equipment();
     $eq->saveOrUpdate($uid, true, true, 20.0, 2.5, [
         '20kg'   => 2,
@@ -31,8 +31,9 @@ if (!$existing) {
         '0.5kg'  => 2
     ], 'home_weights');
     $gem = new GeminiWorkoutService();
-    $gem->generateWeeklyProgram($uid, 'intermediate', true);
+    $gem->generateWeeklyProgram($uid, 75.0, 'intermediate', true);
     echo "SUCCESS: Demo user created! Email: {$email} | Password: {$password}\n";
 } else {
     echo "Demo user already exists: {$email}\n";
 }
+

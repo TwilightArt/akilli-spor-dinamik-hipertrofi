@@ -29,6 +29,53 @@ class GeminiWorkoutService
         $this->equipmentModel = $equipmentModel ?? new Equipment();
     }
 
+    public function generateAiCoachSummary(int $userId, int $sessionId): string
+    {
+        $summaryData = $this->db->query("SELECT * FROM workout_sessions WHERE id = $sessionId AND user_id = $userId")->fetch();
+        if (!$summaryData) return "Antrenman verisi bulunamadý.";
+        
+        $logs = $this->db->query("
+            SELECT e.name, wl.set_number, wl.actual_weight, wl.actual_reps, wl.rir_bucket, wl.form_breakdown 
+            FROM workout_logs wl 
+            JOIN exercises e ON wl.exercise_id = e.id 
+            WHERE wl.session_id = $sessionId
+            ORDER BY wl.created_at ASC
+        ")->fetchAll();
+        
+        if (empty($logs)) return "Kaydedilmiþ set bulunamadý. Yapay zeka yorum yapamýyor.";
+        
+        $prompt = "Sen 'Akýllý Hipertrofi' uygulamasýnýn acýmasýz ama motive edici sanal antrenörüsün. Kullanýcý az önce antrenmanýný bitirdi. Aþaðýda antrenman dökümü var:\n";
+        foreach ($logs as $l) {
+            $prompt .= "- {$l['name']} (Set {$l['set_number']}): {$l['actual_weight']}kg x {$l['actual_reps']} tekrar. Zorluk: {$l['rir_bucket']}. Form bozulmasý: ".($l['form_breakdown'] ? 'Evet' : 'Hayýr')."\n";
+        }
+        $prompt .= "\nKullanýcýya 3-4 cümlelik kýsa, Türkçe bir koçluk özeti ver. Aðýrlýðý düþtüðü veya formunu bozduðu yerler varsa uyar, kolay bulduðu yerlerde bir dahakine daha çok zorlamasýný söyle. Sadece doðrudan konuþma metnini ver, merhaba vb. deme.";
+        
+        $apiUrl = \App\Config\GeminiConfig::getApiUrl();
+        $apiKey = \App\Config\GeminiConfig::getApiKey();
+        
+        if (!$apiKey || $apiKey === 'GEMINI_API_KEY_BURAYA') {
+            return "Gerçek yapay zeka analizini görmek için lütfen Gemini API anahtarýnýzý yapýlandýrýn. (Simüle edilmiþ koçluk: Bugün fena deðildin ama tükeniþe yeterince yaklaþmamýþsýn gibi duruyor. Sonraki idmanda daha cesur ol!)";
+        }
+        
+        $payload = [
+            'contents' => [
+                ['parts' => [['text' => $prompt]]]
+            ]
+        ];
+        
+        $ch = curl_init($apiUrl . '?key=' . $apiKey);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_POST, true);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($payload));
+        curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 15);
+        $response = curl_exec($ch);
+        curl_close($ch);
+        
+        $data = json_decode($response, true);
+        return $data['candidates'][0]['content']['parts'][0]['text'] ?? "AI koç þu an antrenman programý yapýyor, ulaþamadýk. Sonraki idmanda görüþürüz!";
+    }
+
     /**
      * Generate or fallback weekly program for user
      */
@@ -354,3 +401,4 @@ class GeminiWorkoutService
         }
     }
 }
+
