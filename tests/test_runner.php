@@ -308,6 +308,75 @@ try {
     }
 }
 
+
+// ----------------------------------------------------------------------------
+// TEST 9: RFI Service Calibration Tests
+// ----------------------------------------------------------------------------
+echo "\n9. RFI Service Calibration Tests:\n";
+$db = \App\Config\Database::getConnection();
+$rfiWithDb = new RfiService($db);
+
+try {
+    $db->beginTransaction();
+
+    // Create a dummy user for the foreign key constraint
+    $db->exec("INSERT INTO users (id, name, email, password_hash, gender, birth_date, height_cm) VALUES (9999, 'testuser', 'test@test.com', 'pwd', 'male', '1990-01-01', 180.0) ON CONFLICT(id) DO NOTHING");
+
+    // Case 1: Within bounds (+10%)
+    $base = 50.0;
+    $actual = 55.0; // Ratio 1.10
+    $reason = "Within bounds";
+    $adj = $rfiWithDb->calibrateUserPattern(9999, 'push_horizontal', $base, $actual, $reason);
+
+    assertTest(
+        "Calibration within bounds (+10%) correctly returns 55.0 kg",
+        abs($adj - 55.0) < 0.001,
+        "Calculated: {$adj} kg"
+    );
+
+    // Case 2: Exceeds upper bound (+20%)
+    $actualHigh = 60.0; // Ratio 1.20
+    $adjHigh = $rfiWithDb->calibrateUserPattern(9999, 'pull_vertical', $base, $actualHigh, 'Too high');
+    // Capped at 1.15 => 50 * 1.15 = 57.5
+    assertTest(
+        "Calibration exceeds upper bound (+20%) correctly caps at +15% (57.5 kg)",
+        abs($adjHigh - 57.5) < 0.001,
+        "Calculated: {$adjHigh} kg"
+    );
+
+    // Case 3: Exceeds lower bound (-20%)
+    $actualLow = 40.0; // Ratio 0.80
+    $adjLow = $rfiWithDb->calibrateUserPattern(9999, 'squat', $base, $actualLow, 'Too low');
+    // Floored at 0.85 => 50 * 0.85 = 42.5
+    assertTest(
+        "Calibration exceeds lower bound (-20%) correctly floors at -15% (42.5 kg)",
+        abs($adjLow - 42.5) < 0.001,
+        "Calculated: {$adjLow} kg"
+    );
+
+    // DB Verification
+    $stmt = $db->query("SELECT * FROM user_calibration_log WHERE user_id = 9999 ORDER BY id ASC");
+    $logs = $stmt->fetchAll();
+
+    assertTest(
+        "calibrateUserPattern successfully inserted exactly 3 logs into DB",
+        count($logs) === 3,
+        "Log count: " . count($logs)
+    );
+
+    if (count($logs) === 3) {
+        assertTest(
+            "DB log 1 values are correct (pattern, base, adjusted, reason)",
+            $logs[0]['movement_pattern'] === 'push_horizontal' && abs($logs[0]['base_coefficient'] - 50.0) < 0.001 && abs($logs[0]['adjusted_coefficient'] - 55.0) < 0.001 && $logs[0]['reason'] === 'Within bounds',
+            "Got values: " . print_r($logs[0], true)
+        );
+    }
+
+} catch (Exception $e) {
+    echo "  [ERROR] Calibration test failed with exception: " . $e->getMessage() . "\n";
+} finally {
+    $db->rollBack();
+}
 echo "\n================================================================\n";
 echo "SUMMARY: Passed: {$passed} | Failed: {$failed}\n";
 echo "================================================================\n";
