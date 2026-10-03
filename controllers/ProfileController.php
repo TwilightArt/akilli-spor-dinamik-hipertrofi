@@ -111,15 +111,7 @@ class ProfileController extends Controller
         $tierResult = $this->rfiService->evaluateFitnessTier($pushups, $chinups, $squats, $plankSec);
 
         // Check if user set manual override or relies on auto algorithm
-        $evalMode = (string)($_POST['fitness_eval_mode'] ?? 'auto');
-        $submittedLevel = (string)($_POST['fitness_level'] ?? '');
-        $allowedLevels = ['absolute_beginner', 'beginner', 'intermediate', 'advanced'];
-
-        if ($evalMode === 'manual' && in_array($submittedLevel, $allowedLevels, true)) {
-            $finalFitnessLevel = $submittedLevel;
-        } else {
-            $finalFitnessLevel = $tierResult['level'];
-        }
+        $finalFitnessLevel = $this->determineFitnessLevel($tierResult['level']);
 
         if (empty($name)) {
             $this->setFlash('danger', 'İsim alanı boş bırakılamaz.');
@@ -147,6 +139,34 @@ class ProfileController extends Controller
         $this->weighInModel->logWeight($userId, $currentWeightKg, date('Y-m-d'), 'Profil Ayarları Güncellemesi');
 
         // 3. Update Joint Complaints / Injury Reports
+        $this->updateInjuryReports($userId);
+
+        // 4. Regenerate weekly program if requested or if fitness level changed
+        $programNote = $this->handleProgramRegeneration($userId, $oldLevel, $finalFitnessLevel);
+
+        // Refresh Session
+        $updatedUser = $this->userModel->findById($userId);
+        unset($updatedUser['password_hash']);
+        $_SESSION['user'] = $updatedUser;
+
+        $this->setFlash('success', "Biyometrik verileriniz, 4 parametreli kalistenik testiniz (Skor: {$tierResult['composite_score']}/100 — {$tierResult['title']}) ve eklem tercihleriniz kaydedildi!{$programNote}");
+        $this->redirect('/profile');
+    }
+
+    private function determineFitnessLevel(string $tierResultLevel): string
+    {
+        $evalMode = (string)($_POST['fitness_eval_mode'] ?? 'auto');
+        $submittedLevel = (string)($_POST['fitness_level'] ?? '');
+        $allowedLevels = ['absolute_beginner', 'beginner', 'intermediate', 'advanced'];
+
+        if ($evalMode === 'manual' && in_array($submittedLevel, $allowedLevels, true)) {
+            return $submittedLevel;
+        }
+        return $tierResultLevel;
+    }
+
+    private function updateInjuryReports(int $userId): void
+    {
         $submittedInjuries = $_POST['injuries'] ?? [];
         if (!is_array($submittedInjuries)) {
             $submittedInjuries = [];
@@ -170,26 +190,20 @@ class ProfileController extends Controller
                 'rdate' => $today
             ]);
         }
+    }
 
-        // 4. Regenerate weekly program if requested or if fitness level changed
+    private function handleProgramRegeneration(int $userId, string $oldLevel, string $finalFitnessLevel): string
+    {
         $shouldRegenerate = !empty($_POST['regenerate_program']) || ($oldLevel !== $finalFitnessLevel);
-        $programNote = "";
         if ($shouldRegenerate) {
             try {
                 $this->workoutService->generateWeeklyProgram($userId, $finalFitnessLevel, true);
-                $programNote = " Haftalık antrenman programınız yeni seviyenize ve kilonuza göre baştan uyarlandı!";
+                return " Haftalık antrenman programınız yeni seviyenize ve kilonuza göre baştan uyarlandı!";
             } catch (\Throwable $e) {
                 error_log("Program regen error: " . $e->getMessage());
             }
         }
-
-        // Refresh Session
-        $updatedUser = $this->userModel->findById($userId);
-        unset($updatedUser['password_hash']);
-        $_SESSION['user'] = $updatedUser;
-
-        $this->setFlash('success', "Biyometrik verileriniz, 4 parametreli kalistenik testiniz (Skor: {$tierResult['composite_score']}/100 — {$tierResult['title']}) ve eklem tercihleriniz kaydedildi!{$programNote}");
-        $this->redirect('/profile');
+        return "";
     }
 
     public function updatePassword(): void
