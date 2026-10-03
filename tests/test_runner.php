@@ -8,13 +8,19 @@ declare(strict_types=1);
  * ============================================================================
  */
 
+putenv("DB_DRIVER=sqlite");
+
 require_once __DIR__ . '/../config/constants.php';
+require_once __DIR__ . '/../config/database.php';
 require_once __DIR__ . '/../services/PlateSolverService.php';
 require_once __DIR__ . '/../services/RfiService.php';
+require_once __DIR__ . '/../services/InjuryFilterService.php';
 
 use App\Config\Constants;
+use App\Config\Database;
 use App\Services\PlateSolverService;
 use App\Services\RfiService;
+use App\Services\InjuryFilterService;
 
 $passed = 0;
 $failed = 0;
@@ -167,6 +173,52 @@ assertTest(
     abs($consecutiveRir0Drop - 45.0) < 0.001,
     "Calculated: {$consecutiveRir0Drop} kg"
 );
+
+// ----------------------------------------------------------------------------
+// TEST 6: InjuryFilterService isExerciseHarmful Tests
+// ----------------------------------------------------------------------------
+echo "\n6. InjuryFilterService isExerciseHarmful Tests:\n";
+$db = Database::getConnection();
+$db->beginTransaction();
+try {
+    $filter = new InjuryFilterService($db);
+
+    // Setup dummy data
+    $dummyExerciseId = 99999;
+    $db->exec("PRAGMA foreign_keys = OFF;");
+    $db->exec("INSERT INTO exercises (id, name, movement_pattern, primary_muscle_group, required_equipment) VALUES ({$dummyExerciseId}, 'Dummy Exercise', 'horizontal_push', 'chest', 'bodyweight')");
+    $db->exec("INSERT INTO exercise_joint_stress (exercise_id, joint_area) VALUES ({$dummyExerciseId}, 'shoulder')");
+    $db->exec("INSERT INTO exercise_joint_stress (exercise_id, joint_area) VALUES ({$dummyExerciseId}, 'elbow')");
+
+    // Test cases
+    assertTest(
+        "Empty injured joints array returns false",
+        $filter->isExerciseHarmful($dummyExerciseId, []) === false
+    );
+
+    assertTest(
+        "Single injured joint that matches the exercise stress returns true",
+        $filter->isExerciseHarmful($dummyExerciseId, ['shoulder']) === true
+    );
+
+    assertTest(
+        "Single injured joint that does NOT match the exercise stress returns false",
+        $filter->isExerciseHarmful($dummyExerciseId, ['knee']) === false
+    );
+
+    assertTest(
+        "Multiple injured joints where at least one matches returns true",
+        $filter->isExerciseHarmful($dummyExerciseId, ['knee', 'elbow']) === true
+    );
+
+    assertTest(
+        "Multiple injured joints where none match returns false",
+        $filter->isExerciseHarmful($dummyExerciseId, ['knee', 'ankle']) === false
+    );
+
+} finally {
+    $db->rollBack();
+}
 
 echo "\n================================================================\n";
 echo "SUMMARY: Passed: {$passed} | Failed: {$failed}\n";
