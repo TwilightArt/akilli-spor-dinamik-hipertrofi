@@ -195,21 +195,29 @@ unset($_SESSION['flash']);
     <!-- Global Flash Alerts Container -->
     <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 mb-16 md:mb-6">
         <?php if ($flash): ?>
-            <div x-data="{ show: true }" x-show="show" x-transition.duration.300ms class="mb-6 p-4 rounded-2xl flex items-start justify-between gap-3 shadow-lg <?= 
+            <div x-data="{ show: true }" x-show="show" x-transition.duration.300ms role="<?= in_array($flash['type'], ['danger', 'warning']) ? 'alert' : 'status' ?>" class="mb-6 p-4 rounded-2xl flex items-start justify-between gap-3 shadow-lg <?=
                 $flash['type'] === 'success' ? 'bg-emerald-950/60 border border-emerald-500/30 text-emerald-200' : 
                 ($flash['type'] === 'danger' ? 'bg-rose-950/60 border border-rose-500/30 text-rose-200' : 
                 ($flash['type'] === 'warning' ? 'bg-amber-950/60 border border-amber-500/30 text-amber-200' : 
                 'bg-blue-950/60 border border-blue-500/30 text-blue-200')) ?>">
                 <div class="flex items-center gap-3">
-                    <i class="text-lg <?= 
+                    <i aria-hidden="true" class="text-lg <?=
                         $flash['type'] === 'success' ? 'fa-solid fa-circle-check text-emerald-400' : 
                         ($flash['type'] === 'danger' ? 'fa-solid fa-triangle-exclamation text-rose-400' : 
                         ($flash['type'] === 'warning' ? 'fa-solid fa-triangle-exclamation text-amber-400' : 
                         'fa-solid fa-circle-info text-blue-400')) ?>"></i>
-                    <p class="text-sm font-medium"><?= Security::escape($flash['message']) ?></p>
+                    <p class="text-sm font-medium">
+                        <span class="sr-only"><?=
+                            $flash['type'] === 'success' ? 'Başarılı:' :
+                            ($flash['type'] === 'danger' ? 'Hata:' :
+                            ($flash['type'] === 'warning' ? 'Uyarı:' :
+                            'Bilgi:'))
+                        ?></span>
+                        <?= Security::escape($flash['message']) ?>
+                    </p>
                 </div>
-                <button @click="show = false" class="text-slate-400 hover:text-white transition-colors">
-                    <i class="fa-solid fa-xmark"></i>
+                <button type="button" aria-label="Uyarıyı Kapat" @click="show = false; document.body.focus()" class="min-w-[44px] min-h-[44px] flex items-center justify-center p-2 -mr-2 -mt-2 rounded-lg text-slate-400 hover:text-white hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-white transition-colors">
+                    <i aria-hidden="true" class="fa-solid fa-xmark text-lg"></i>
                 </button>
             </div>
         <?php endif; ?>
