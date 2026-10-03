@@ -12,7 +12,8 @@ unset($_SESSION['flash']);
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Akıllı spor ve dinamik hipertrofi platformu ile kişiselleştirilmiş antrenman programları oluşturun ve ilerlemenizi canlı olarak takip edin.">
-    <meta name="theme-color" content="#0b0f19">
+    <meta name="theme-color" content="#e11d48">
+    <link rel="manifest" href="/manifest.json">
 
     <!-- Open Graph -->
     <meta property="og:title" content="<?= Security::escape($pageTitle ?? 'Akıllı Spor & Dinamik Hipertrofi Platformu') ?>">
@@ -251,4 +252,5 @@ unset($_SESSION['flash']);
                 </button>
             </div>
         <?php endif; ?>
+
 
