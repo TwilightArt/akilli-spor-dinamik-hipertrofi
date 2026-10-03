@@ -6,18 +6,15 @@ namespace App\Controllers;
 use App\Core\Controller;
 use App\Core\Security;
 use App\Services\AnalyticsService;
-use App\Models\User;
 
 class AnalyticsController extends Controller
 {
     private AnalyticsService $analyticsService;
-    private User $userModel;
 
     public function __construct()
     {
         parent::__construct();
         $this->analyticsService = new AnalyticsService();
-        $this->userModel = new User();
     }
 
     public function index(): void
