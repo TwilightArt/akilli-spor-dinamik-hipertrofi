@@ -8,7 +8,6 @@ use App\Core\Security;
 use App\Models\WorkoutSession;
 use App\Models\WorkoutLog;
 use App\Models\Equipment;
-use App\Models\Exercise;
 use App\Services\PlateSolverService;
 use App\Services\InjuryFilterService;
 use App\Services\HypertrophyEngine;
@@ -20,7 +19,6 @@ class WorkoutController extends Controller
     private WorkoutSession $sessionModel;
     private WorkoutLog $logModel;
     private Equipment $equipmentModel;
-    private Exercise $exerciseModel;
     private PlateSolverService $plateSolver;
     private InjuryFilterService $injuryFilter;
     private HypertrophyEngine $hypertrophyEngine;
@@ -32,7 +30,6 @@ class WorkoutController extends Controller
         $this->sessionModel = new WorkoutSession();
         $this->logModel = new WorkoutLog();
         $this->equipmentModel = new Equipment();
-        $this->exerciseModel = new Exercise();
         $this->plateSolver = new PlateSolverService();
         $this->injuryFilter = new InjuryFilterService();
         $this->hypertrophyEngine = new HypertrophyEngine();
