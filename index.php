@@ -56,6 +56,7 @@ use App\Controllers\AuthController;
 use App\Controllers\OnboardingController;
 use App\Controllers\WorkoutController;
 use App\Controllers\WeighInController;
+use App\Controllers\CalculatorController;
 use App\Controllers\ProfileController;
 use App\Controllers\AnalyticsController;
 use App\Controllers\ApiController;
@@ -113,6 +114,7 @@ $router->post('/workout/custom_program', [WorkoutController::class, 'createCusto
 // ----------------------------------------------------------------------------
 // Weigh-In & Trend Routes
 // ----------------------------------------------------------------------------
+$router->get('/calculator/tdee', [CalculatorController::class, 'tdee'], ['auth']);
 $router->get('/weigh-in', [WeighInController::class, 'index'], ['auth']);
 $router->post('/weigh-in', [WeighInController::class, 'save'], ['auth']);
 
