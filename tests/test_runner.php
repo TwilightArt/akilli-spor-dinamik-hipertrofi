@@ -133,6 +133,22 @@ assertTest(
     "Level: {$tier0['level']}"
 );
 
+// Intermediate Tier Check (20 pushups, 8 chinups, 30 squats, 60s plank)
+$tierIntermediate = $rfi->evaluateFitnessTier(20, 8, 30, 60);
+assertTest(
+    "20 Pushups, 8 Chinups, 30 Squats, 60s Plank sets level to intermediate",
+    $tierIntermediate['level'] === 'intermediate',
+    "Level: {$tierIntermediate['level']}"
+);
+
+// Advanced Tier Check (35 pushups, 20 chinups, 60 squats, 130s plank)
+$tierAdvanced = $rfi->evaluateFitnessTier(35, 20, 60, 130);
+assertTest(
+    "35 Pushups, 20 Chinups, 60 Squats, 130s Plank sets level to advanced",
+    $tierAdvanced['level'] === 'advanced',
+    "Level: {$tierAdvanced['level']}"
+);
+
 // ----------------------------------------------------------------------------
 // TEST 5: Form Breakdown & Consecutive RIR 0 Logic
 // ----------------------------------------------------------------------------

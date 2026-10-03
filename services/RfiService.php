@@ -80,66 +80,49 @@ class RfiService
     }
 
     /**
+     * Helper to calculate component score based on defined thresholds
+     * Thresholds array format: [ t4, t3, t2, t1 ]
+     * where value >= t4 gives 100,
+     * value >= t3 interpolates between 75 and 100,
+     * value >= t2 interpolates between 50 and 75,
+     * value >= t1 interpolates between 20 and 50,
+     * otherwise interpolates between 0 and 20.
+     */
+    private function calculateScore(int $value, array $thresholds): float
+    {
+        [$t4, $t3, $t2, $t1] = $thresholds;
+
+        if ($value >= $t4) {
+            return 100.0;
+        } elseif ($value >= $t3) {
+            return 75.0 + (($value - $t3) / (float)($t4 - $t3)) * 25.0;
+        } elseif ($value >= $t2) {
+            return 50.0 + (($value - $t2) / (float)($t3 - $t2)) * 25.0;
+        } elseif ($value >= $t1) {
+            return 20.0 + (($value - $t1) / (float)($t2 - $t1)) * 30.0;
+        } else {
+            if ($t1 == 0) return 0.0;
+            return ($value / (float)$t1) * 20.0;
+        }
+    }
+
+    /**
      * Determine user fitness tier and regression assignments based on multi-parametric onboarding test
      * Evaluates 4 core functional pillars: Push (Şınav), Pull (Barfiks), Legs (Squat), Core (Mekik/Plank)
      */
     public function evaluateFitnessTier(int $pushups, int $chinups, int $squats, int $corePlankSec = 30): array
     {
         // 1. Push Score (Şınav - İtiş Kuvveti): 0 - 100
-        $pushScore = 0.0;
-        if ($pushups >= 30) {
-            $pushScore = 100.0;
-        } elseif ($pushups >= 20) {
-            $pushScore = 75.0 + (($pushups - 20) / 10.0) * 25.0;
-        } elseif ($pushups >= 10) {
-            $pushScore = 50.0 + (($pushups - 10) / 10.0) * 25.0;
-        } elseif ($pushups >= 3) {
-            $pushScore = 20.0 + (($pushups - 3) / 7.0) * 30.0;
-        } else {
-            $pushScore = ($pushups / 3.0) * 20.0;
-        }
+        $pushScore = $this->calculateScore($pushups, [30, 20, 10, 3]);
 
         // 2. Pull Score (Barfiks / Kapı Çekişi): 0 - 100
-        $pullScore = 0.0;
-        if ($chinups >= 15) {
-            $pullScore = 100.0;
-        } elseif ($chinups >= 8) {
-            $pullScore = 75.0 + (($chinups - 8) / 7.0) * 25.0;
-        } elseif ($chinups >= 4) {
-            $pullScore = 50.0 + (($chinups - 4) / 4.0) * 25.0;
-        } elseif ($chinups >= 1) {
-            $pullScore = 20.0 + (($chinups - 1) / 3.0) * 30.0;
-        } else {
-            $pullScore = 0.0;
-        }
+        $pullScore = $this->calculateScore($chinups, [15, 8, 4, 1]);
 
         // 3. Leg Score (Vücut Ağırlığı Squat): 0 - 100
-        $legScore = 0.0;
-        if ($squats >= 50) {
-            $legScore = 100.0;
-        } elseif ($squats >= 30) {
-            $legScore = 75.0 + (($squats - 30) / 20.0) * 25.0;
-        } elseif ($squats >= 15) {
-            $legScore = 50.0 + (($squats - 15) / 15.0) * 25.0;
-        } elseif ($squats >= 5) {
-            $legScore = 20.0 + (($squats - 5) / 10.0) * 30.0;
-        } else {
-            $legScore = ($squats / 5.0) * 20.0;
-        }
+        $legScore = $this->calculateScore($squats, [50, 30, 15, 5]);
 
         // 4. Core Score (Mekik / Ön Plank Süresi saniye): 0 - 100
-        $coreScore = 0.0;
-        if ($corePlankSec >= 120) {
-            $coreScore = 100.0;
-        } elseif ($corePlankSec >= 75) {
-            $coreScore = 75.0 + (($corePlankSec - 75) / 45.0) * 25.0;
-        } elseif ($corePlankSec >= 40) {
-            $coreScore = 50.0 + (($corePlankSec - 40) / 35.0) * 25.0;
-        } elseif ($corePlankSec >= 20) {
-            $coreScore = 20.0 + (($corePlankSec - 20) / 20.0) * 30.0;
-        } else {
-            $coreScore = ($corePlankSec / 20.0) * 20.0;
-        }
+        $coreScore = $this->calculateScore($corePlankSec, [120, 75, 40, 20]);
 
         // Weighted composite conditioning score: Push %25, Pull %25, Leg %25, Core %25
         $compositeScore = round(($pushScore * 0.25) + ($pullScore * 0.25) + ($legScore * 0.25) + ($coreScore * 0.25), 1);
