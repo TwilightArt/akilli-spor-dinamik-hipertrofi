@@ -12,6 +12,8 @@ putenv("DB_DRIVER=sqlite");
 
 require_once __DIR__ . '/../config/constants.php';
 require_once __DIR__ . '/../config/database.php';
+require_once __DIR__ . '/../core/Model.php';
+require_once __DIR__ . '/../models/PasswordReset.php';
 require_once __DIR__ . '/../services/PlateSolverService.php';
 require_once __DIR__ . '/../services/RfiService.php';
 require_once __DIR__ . '/../services/InjuryFilterService.php';
@@ -21,6 +23,7 @@ use App\Config\Database;
 use App\Services\PlateSolverService;
 use App\Services\RfiService;
 use App\Services\InjuryFilterService;
+use App\Models\PasswordReset;
 
 $passed = 0;
 $failed = 0;
@@ -218,6 +221,39 @@ try {
 
 } finally {
     $db->rollBack();
+}
+
+// ----------------------------------------------------------------------------
+// TEST 7: PasswordReset DB & Hash operations
+// ----------------------------------------------------------------------------
+echo "\n7. PasswordReset Model Tests:\n";
+$pdo = Database::getConnection();
+$pdo->beginTransaction();
+try {
+    $resetModel = new PasswordReset();
+    $testEmail = "test_reset_" . time() . "@example.com";
+
+    // Test createResetToken
+    $rawToken = $resetModel->createResetToken($testEmail);
+    assertTest(
+        "createResetToken returns a 64-character hex string (32 bytes cryptographically secure)",
+        strlen($rawToken) === 64,
+        "Got length: " . strlen($rawToken)
+    );
+
+    // Verify DB insertion directly
+    $stmt = $pdo->prepare("SELECT token_hash, expires_at FROM password_resets WHERE email = :email");
+    $stmt->execute(['email' => $testEmail]);
+    $row = $stmt->fetch();
+
+    assertTest(
+        "createResetToken successfully inserts a hashed token into the database",
+        $row !== false && $row['token_hash'] === hash('sha256', $rawToken),
+        "DB record found and hash matches"
+    );
+
+} finally {
+    $pdo->rollBack();
 }
 
 echo "\n================================================================\n";
