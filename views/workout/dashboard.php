@@ -232,7 +232,7 @@ elseif ($bmi >= 30.0) $bmiCategory = 'Yüksek';
                 </div>
             </div>
 
-            <button type="submit" class="w-full py-4 px-6 btn-sporty w-full py-4 flex items-center justify-center gap-2">
+            <button type="submit" class="btn-sporty w-full py-4 px-6 flex items-center justify-center gap-2">
                 <i class="fa-solid fa-check-double"></i>
                 <span>Programı Sıfırdan Oluştur & Aktif Et</span>
             </button>
@@ -439,7 +439,7 @@ elseif ($bmi >= 30.0) $bmiCategory = 'Yüksek';
 
                 <!-- Launch Button -->
                 <div class="pt-2">
-                    <a href="/workout/live/<?= $day['id'] ?>" class="w-full py-3.5 px-4 btn-sporty w-full py-3.5 flex items-center justify-center gap-2">
+                    <a href="/workout/live/<?= $day['id'] ?>" class="btn-sporty w-full py-3.5 px-4 flex items-center justify-center gap-2">
                         <i class="fa-solid fa-play text-xs"></i>
                         <span>Bu Antrenmanı Canlı Başlat</span>
                     </a>
@@ -460,38 +460,33 @@ elseif ($bmi >= 30.0) $bmiCategory = 'Yüksek';
                 Henüz tamamlanmış bir antrenman bulunmuyor. İlk oturumunuzu başlatmak için yukarıdaki günlerden birini seçin!
             </div>
         <?php else: ?>
-            <div class="overflow-x-auto">
-                <table class="w-full text-left text-xs">
-                    <thead>
-                        <tr class="border-b border-slate-800 text-slate-400 uppercase tracking-wider font-semibold">
-                            <th class="py-3 px-4">Tarih</th>
-                            <th class="py-3 px-4">Odak Alanı</th>
-                            <th class="py-3 px-4 text-center">Toplam Set</th>
-                            <th class="py-3 px-4 text-right">Kaldırılan Hacim</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-slate-800/60">
-                        <?php foreach ($recentWorkouts as $rw): ?>
-                        <tr class="hover:bg-slate-800/30 transition-colors">
-                            <td class="py-3.5 px-4 font-medium text-slate-300">
-                                <?= date('d.m.Y H:i', strtotime($rw['started_at'])) ?>
-                            </td>
-                            <td class="py-3.5 px-4 text-white font-semibold">
-                                <?= Security::escape($rw['focus_area'] ?? 'Genel Antrenman') ?>
-                            </td>
-                            <td class="py-3.5 px-4 text-center text-indigo-400 font-bold">
-                                <?= (int)$rw['total_sets'] ?>
-                            </td>
-                            <td class="py-3.5 px-4 text-right text-emerald-400 font-bold">
-                                <?= number_format((float)$rw['total_volume'], 1, ',', '.') ?> kg
-                            </td>
-                        </tr>
-                        <?php endforeach; ?>
-                    </tbody>
-                </table>
+                        <div class="space-y-3">
+                <?php foreach ($recentWorkouts as $rw): ?>
+                <div class="flex items-center justify-between p-4 rounded-2xl bg-zinc-950/50 border border-zinc-800">
+                    <div>
+                        <div class="text-white font-bold mb-1"><?= Security::escape($rw['focus_area'] ?? 'Genel Antrenman') ?></div>
+                        <div class="text-[11px] text-slate-500 font-medium">
+                            <i class="fa-regular fa-calendar mr-1"></i> <?= date('d.m.Y H:i', strtotime($rw['started_at'])) ?>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-4 text-right">
+                        <div>
+                            <div class="text-[10px] text-slate-500 uppercase tracking-wider font-bold mb-0.5">Set</div>
+                            <div class="text-brand-400 font-black text-sm"><?= (int)$rw['total_sets'] ?></div>
+                        </div>
+                        <div>
+                            <div class="text-[10px] text-slate-500 uppercase tracking-wider font-bold mb-0.5">Hacim</div>
+                            <div class="text-emerald-400 font-black text-sm"><?= number_format((float)$rw['total_volume'], 1, ',', '.') ?> <span class="text-[10px]">kg</span></div>
+                        </div>
+                    </div>
+                </div>
+                <?php endforeach; ?>
             </div>
         <?php endif; ?>
     </div>
 </div>
+
+
+
 
 

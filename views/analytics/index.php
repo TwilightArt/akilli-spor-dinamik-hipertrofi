@@ -193,7 +193,7 @@ foreach ($allPeaks as $p) {
     <div class="mb-6 p-6 rounded-3xl card-sporty relative overflow-hidden">
         <h2 class="text-xl font-bold font-display text-gradient mb-4">Son 7 Günlük Kas Yorgunluðu (Isý Haritasý)</h2>
         <p class="text-sm text-slate-400 mb-6">Kas gruplarýnýzýn maruz kaldýðý iþ hacmi (aktif set sayýsý). Ýdeal büyüme için dinlenme ve yüklenme dengesine dikkat edin.</p>
-        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+        <div class="flex overflow-x-auto snap-x snap-mandatory gap-4 pb-4 hide-scrollbar">
             <?php 
             $muscleNames = [
                 'chest' => 'Göðüs', 'back' => 'Sýrt', 'legs' => 'Bacak', 
@@ -206,7 +206,7 @@ foreach ($allPeaks as $p) {
                 elseif ($percentage > 50) $colorClass = 'text-orange-500';
                 elseif ($percentage > 25) $colorClass = 'text-brand-400';
             ?>
-            <div class="flex flex-col items-center bg-zinc-950/50 p-4 rounded-2xl border border-zinc-800">
+            <div class="flex flex-col items-center bg-zinc-950/50 p-4 rounded-2xl border border-zinc-800 min-w-[120px] snap-center shrink-0">
                 <div class="relative w-16 h-16 flex items-center justify-center mb-3">
                     <svg class="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
                         <path class="text-zinc-800" stroke-width="3" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
@@ -547,4 +547,5 @@ document.addEventListener('DOMContentLoaded', function() {
     <?php endif; ?>
 });
 </script>
+
 

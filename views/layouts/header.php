@@ -135,11 +135,11 @@ unset($_SESSION['flash']);
 
                 <!-- Desktop Navigation Links -->
                 <?php if ($currentUser): ?>
-                <nav class="hidden md:flex items-center gap-1">
+                <nav class="hidden lg:flex items-center gap-1">
                     <a href="/workout/dashboard" class="px-3 py-2 rounded-lg text-sm font-medium text-slate-300 hover:text-white hover:bg-slate-800 transition-all flex items-center gap-1.5">
                         <i class="fa-solid fa-table-columns text-slate-400"></i> Panel
                     </a>
-                    <a href="/workout/live" class="px-3 py-2 rounded-lg text-sm font-medium bg-brand-600/10 text-brand-400 border border-brand-500/30 hover:bg-brand-600 hover:text-white transition-all flex items-center gap-1.5 shadow-sm">
+                    <a href="/workout/dashboard" class="px-3 py-2 rounded-lg text-sm font-medium bg-brand-600/10 text-brand-400 border border-brand-500/30 hover:bg-brand-600 hover:text-white transition-all flex items-center gap-1.5 shadow-sm">
                         <i class="fa-solid fa-play text-xs"></i> Canlı Antrenman
                     </a>
                     <a href="/analytics" class="px-3 py-2 rounded-lg text-sm font-medium text-slate-300 hover:text-white hover:bg-slate-800 transition-all flex items-center gap-1.5">
@@ -252,5 +252,6 @@ unset($_SESSION['flash']);
                 </button>
             </div>
         <?php endif; ?>
+
 
 
