@@ -19,6 +19,8 @@ require_once __DIR__ . '/../services/PlateSolverService.php';
 require_once __DIR__ . '/../services/RfiService.php';
 require_once __DIR__ . '/../services/InjuryFilterService.php';
 require_once __DIR__ . '/../services/AnalyticsService.php';
+require_once __DIR__ . '/../models/Equipment.php';
+require_once __DIR__ . '/../services/GeminiWorkoutService.php';
 
 use App\Config\Database;
 use App\Config\Constants;
@@ -455,6 +457,37 @@ try {
     $db->rollBack();
 }
 
+// ----------------------------------------------------------------------------
+// TEST 11: GeminiWorkoutService - getStaticFallbackTemplate
+// ----------------------------------------------------------------------------
+echo "\n11. GeminiWorkoutService Fallback Tests:\n";
+$geminiSvc = new \App\Services\GeminiWorkoutService();
+
+$availableExercises = [
+    ['id' => 101, 'movement_pattern' => 'push_horizontal'],
+    ['id' => 102, 'movement_pattern' => 'pull_horizontal'],
+    ['id' => 103, 'movement_pattern' => 'push_vertical'],
+    ['id' => 104, 'movement_pattern' => 'squat'],
+    ['id' => 105, 'movement_pattern' => 'hinge'],
+    ['id' => 106, 'movement_pattern' => 'core']
+];
+
+$fullBody = $geminiSvc->getStaticFallbackTemplate('full_body', $availableExercises);
+$fullBodyDays = $fullBody['days'] ?? [];
+assertTest("Returns 3 days for full_body", count($fullBodyDays) === 3);
+
+$day1 = $fullBodyDays[0]['exercises'] ?? [];
+assertTest("Day 1 has 4 exercises", count($day1) === 4);
+assertTest("Day 1 Exercise 1 is squat (104)", $day1[0]['exercise_id'] === 104);
+assertTest("Day 1 Exercise 2 is push_horizontal (101)", $day1[1]['exercise_id'] === 101);
+
+$split = $geminiSvc->getStaticFallbackTemplate('split_upper_lower', $availableExercises);
+$splitDays = $split['days'] ?? [];
+assertTest("Returns 4 days for split_upper_lower", count($splitDays) === 4);
+
+$sDay1 = $splitDays[0]['exercises'] ?? [];
+assertTest("Split Day 1 Exercise 1 is push_horizontal (101)", $sDay1[0]['exercise_id'] === 101);
+assertTest("Split Day 1 Exercise 4 is fallback (42) for missing pattern (isolation_arm)", $sDay1[3]['exercise_id'] === 42);
 echo "\n================================================================\n";
 echo "SUMMARY: Passed: {$passed} | Failed: {$failed}\n";
 echo "================================================================\n";
