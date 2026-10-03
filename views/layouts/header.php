@@ -44,22 +44,38 @@ unset($_SESSION['flash']);
                     },
                     colors: {
                         brand: {
-                            50: '#eef2ff',
-                            100: '#e0e7ff',
-                            400: '#818cf8',
-                            500: '#6366f1',
-                            600: '#4f46e5',
-                            700: '#4338ca',
-                            900: '#312e81',
+                            50: '#fff1f2',
+                            100: '#ffe4e6',
+                            400: '#fb7185',
+                            500: '#f43f5e',
+                            600: '#e11d48',
+                            700: '#be123c',
+                            900: '#881337',
                         },
-                        darkbg: '#0b0f19',
-                        cardbg: '#111827',
-                        cardborder: '#1f2937'
+                        darkbg: '#000000',
+                        cardbg: '#09090b',
+                        cardborder: '#27272a'
                     }
                 }
             }
         }
     </script>
+    <style type="text/tailwindcss">
+        @layer components {
+            .btn-sporty {
+                @apply bg-gradient-to-r from-rose-600 to-orange-500 text-white font-bold rounded-xl shadow-lg shadow-orange-500/20 hover:shadow-orange-500/40 hover:from-rose-500 hover:to-orange-400 transition-all duration-300 transform hover:-translate-y-0.5 border border-rose-500/30;
+            }
+            .btn-sporty-outline {
+                @apply border border-rose-600 text-rose-500 font-bold rounded-xl shadow-[0_0_10px_rgba(225,29,72,0.1)] hover:bg-rose-600/10 hover:shadow-[0_0_15px_rgba(225,29,72,0.2)] transition-all duration-300;
+            }
+            .card-sporty {
+                @apply bg-zinc-900/80 backdrop-blur-md border border-zinc-800 rounded-2xl shadow-xl;
+            }
+            .text-gradient {
+                @apply bg-clip-text text-transparent bg-gradient-to-r from-rose-500 to-orange-400;
+            }
+        }
+    </style>
 
     <!-- Alpine.js -->
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js"></script>
@@ -163,7 +179,7 @@ unset($_SESSION['flash']);
                         </div>
                     <?php else: ?>
                         <a href="/login" class="text-sm font-medium text-slate-300 hover:text-white px-3 py-1.5 transition-colors">Giriş</a>
-                        <a href="/register" class="text-sm font-medium bg-brand-600 hover:bg-brand-500 text-white px-4 py-2 rounded-xl shadow-md shadow-brand-600/30 transition-all">Kayıt Ol</a>
+                        <a href="/register" class="text-sm font-medium px-4 py-2 text-sm btn-sporty">Kayıt Ol</a>
                     <?php endif; ?>
                 </div>
             </div>
@@ -235,3 +251,4 @@ unset($_SESSION['flash']);
                 </button>
             </div>
         <?php endif; ?>
+

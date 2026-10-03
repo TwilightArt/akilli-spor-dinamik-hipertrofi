@@ -35,7 +35,7 @@ elseif ($bmi >= 30.0) $bmiCategory = 'Yüksek';
                 </p>
             </div>
         </div>
-        <a href="/workout/live" class="w-full sm:w-auto px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl shadow-lg shadow-emerald-600/30 transition-all text-center flex items-center justify-center gap-2">
+        <a href="/workout/live" class="w-full sm:w-auto px-5 py-2.5 btn-sporty text-xs flex items-center justify-center gap-2">
             <i class="fa-solid fa-play text-xs"></i>
             <span>Antrenmana Devam Et</span>
         </a>
@@ -66,7 +66,7 @@ elseif ($bmi >= 30.0) $bmiCategory = 'Yüksek';
                 </div>
                 <div>
                     <div class="flex items-center gap-2 mb-1">
-                        <h1 class="text-2xl font-bold font-display text-white tracking-tight"><?= Security::escape($user['name']) ?></h1>
+                        <h1 class="text-2xl font-bold font-display text-gradient tracking-tight"><?= Security::escape($user['name']) ?></h1>
                         <span class="px-2.5 py-0.5 text-[10px] font-extrabold uppercase tracking-wider rounded-full bg-brand-500/10 text-brand-400 border border-brand-500/20">
                             <?= Security::escape($user['fitness_level'] ?? 'beginner') ?>
                         </span>
@@ -86,7 +86,7 @@ elseif ($bmi >= 30.0) $bmiCategory = 'Yüksek';
                     <i class="fa-solid fa-wand-magic-sparkles text-xs"></i>
                     <span>Programı Yeniden Kur</span>
                 </button>
-                <a href="/workout/live" class="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl shadow-lg shadow-emerald-600/30 transition-all flex items-center gap-2">
+                <a href="/workout/live" class="px-4 py-2.5 btn-sporty text-xs flex items-center gap-2">
                     <i class="fa-solid fa-play text-xs"></i>
                     <span>Bugünkü Antrenmana Başla</span>
                 </a>
@@ -232,7 +232,7 @@ elseif ($bmi >= 30.0) $bmiCategory = 'Yüksek';
                 </div>
             </div>
 
-            <button type="submit" class="w-full py-4 px-6 bg-gradient-to-r from-brand-600 to-emerald-600 hover:from-brand-500 hover:to-emerald-500 text-white font-black text-sm rounded-2xl shadow-xl shadow-brand-600/30 transition-all flex items-center justify-center gap-2">
+            <button type="submit" class="w-full py-4 px-6 btn-sporty w-full py-4 flex items-center justify-center gap-2">
                 <i class="fa-solid fa-check-double"></i>
                 <span>Programı Sıfırdan Oluştur & Aktif Et</span>
             </button>
@@ -439,7 +439,7 @@ elseif ($bmi >= 30.0) $bmiCategory = 'Yüksek';
 
                 <!-- Launch Button -->
                 <div class="pt-2">
-                    <a href="/workout/live/<?= $day['id'] ?>" class="w-full py-3.5 px-4 bg-gradient-to-r from-brand-600 to-indigo-600 hover:from-brand-500 hover:to-indigo-500 text-white font-bold text-xs rounded-xl shadow-lg shadow-brand-600/30 transition-all text-center flex items-center justify-center gap-2">
+                    <a href="/workout/live/<?= $day['id'] ?>" class="w-full py-3.5 px-4 btn-sporty w-full py-3.5 flex items-center justify-center gap-2">
                         <i class="fa-solid fa-play text-xs"></i>
                         <span>Bu Antrenmanı Canlı Başlat</span>
                     </a>
@@ -493,3 +493,5 @@ elseif ($bmi >= 30.0) $bmiCategory = 'Yüksek';
         <?php endif; ?>
     </div>
 </div>
+
+

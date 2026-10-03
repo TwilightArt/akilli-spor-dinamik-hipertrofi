@@ -254,7 +254,7 @@ document.addEventListener('alpine:init', () => {
                 <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
                 <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Canlı Oturum #<?= $sessionId ?></span>
             </div>
-            <h1 class="text-lg font-bold font-display text-white">
+            <h1 class="text-lg font-bold font-display text-gradient">
                 <?= Security::escape($dayInfo['focus_area'] ?? 'Genel Hipertrofi Oturumu') ?>
             </h1>
         </div>
@@ -330,7 +330,7 @@ document.addEventListener('alpine:init', () => {
             <p class="text-sm text-slate-400 max-w-md mx-auto">Seçilen gün için kayıtlı egzersiz bulunmuyor veya dinlenme günü. Yukarıdaki gün sekmelerinden başka bir güne geçebilir veya antrenman paneline dönebilirsiniz.</p>
         </div>
         <div class="flex items-center justify-center gap-3 pt-2">
-            <a href="/workout/dashboard" class="px-5 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-500 text-white font-bold text-xs shadow-lg shadow-brand-600/20 transition-all">
+            <a href="/workout/dashboard" class="px-5 py-2.5 rounded-xl btn-sporty px-5 py-2.5 text-xs">
                 <i class="fa-solid fa-arrow-left mr-2"></i> Panele Dön
             </a>
         </div>
@@ -646,3 +646,5 @@ document.addEventListener('alpine:init', () => {
     </div>
 
 </div>
+
+

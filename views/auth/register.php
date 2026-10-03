@@ -95,7 +95,7 @@ $valWeight = Security::escape((string)($old['current_weight_kg'] ?? '75.0'));
             </div>
 
             <button type="submit"
-                class="w-full py-3.5 px-4 mt-2 bg-gradient-to-r from-brand-600 to-indigo-600 hover:from-brand-500 hover:to-indigo-500 text-white font-semibold text-sm rounded-xl shadow-lg shadow-brand-600/30 active:scale-[0.99] transition-all flex items-center justify-center gap-2">
+                class="w-full py-3.5 px-4 mt-2 btn-sporty w-full py-3.5 px-4 text-sm flex items-center justify-center gap-2 flex items-center justify-center gap-2">
                 <span>Hesabı Oluştur & Başla</span>
                 <i class="fa-solid fa-arrow-right text-xs"></i>
             </button>
@@ -107,3 +107,4 @@ $valWeight = Security::escape((string)($old['current_weight_kg'] ?? '75.0'));
         </div>
     </div>
 </div>
+
