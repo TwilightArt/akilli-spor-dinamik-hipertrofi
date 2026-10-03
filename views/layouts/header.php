@@ -134,6 +134,9 @@ unset($_SESSION['flash']);
                     <a href="/onboarding/equipment" class="px-3 py-2 rounded-lg text-sm font-medium text-slate-300 hover:text-white hover:bg-slate-800 transition-all flex items-center gap-1.5">
                         <i class="fa-solid fa-dumbbell text-slate-400"></i> Ekipman
                     </a>
+                    <a href="/calculators/1rm" class="px-3 py-2 rounded-lg text-sm font-medium text-slate-300 hover:text-white hover:bg-slate-800 transition-all flex items-center gap-1.5">
+                        <i class="fa-solid fa-calculator text-brand-400"></i> 1RM
+                    </a>
                     <a href="/profile" class="px-3 py-2 rounded-lg text-sm font-medium text-slate-300 hover:text-white hover:bg-slate-800 transition-all flex items-center gap-1.5">
                         <i class="fa-solid fa-user-gear text-slate-400"></i> Profil & Boy/Kilo
                     </a>
@@ -186,6 +189,10 @@ unset($_SESSION['flash']);
             <a href="/weigh-in" class="flex flex-col items-center gap-1 text-slate-400 hover:text-white py-1">
                 <i class="fa-solid fa-weight-scale text-base"></i>
                 <span class="text-[9px] font-medium">Tartı</span>
+            </a>
+            <a href="/calculators/1rm" class="flex flex-col items-center gap-1 text-slate-400 hover:text-white py-1">
+                <i class="fa-solid fa-calculator text-base"></i>
+                <span class="text-[9px] font-medium">1RM</span>
             </a>
             <a href="/profile" class="flex flex-col items-center gap-1 text-slate-400 hover:text-white py-1">
                 <i class="fa-solid fa-user-gear text-base"></i>
