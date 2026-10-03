@@ -59,6 +59,7 @@ use App\Controllers\WeighInController;
 use App\Controllers\ProfileController;
 use App\Controllers\AnalyticsController;
 use App\Controllers\ApiController;
+use App\Controllers\CalculatorController;
 
 // Start secure session
 Security::startSession();
@@ -130,6 +131,11 @@ $router->get('/api/exercise_progress', [AnalyticsController::class, 'apiProgress
 $router->get('/profile', [ProfileController::class, 'show'], ['auth']);
 $router->post('/profile', [ProfileController::class, 'update'], ['auth']);
 $router->post('/profile/password', [ProfileController::class, 'updatePassword'], ['auth']);
+
+// ----------------------------------------------------------------------------
+// Calculators Routes
+// ----------------------------------------------------------------------------
+$router->get('/calculators/tdee', [CalculatorController::class, 'tdee'], ['auth']);
 
 // ----------------------------------------------------------------------------
 // API AJAX Endpoints
