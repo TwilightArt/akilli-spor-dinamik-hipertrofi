@@ -8,11 +8,24 @@ use PDO;
 
 class AnalyticsService
 {
+    private const BASE_WEIGHTS = [
+        'Barbell Flat Bench Press' => 50.0,
+        'Barbell Back Squat'       => 60.0,
+        'Overhead Press (OHP)'     => 30.0,
+        'Barbell Bent-Over Row'    => 45.0,
+        'Dumbbell Biceps Curl'     => 12.0,
+        'Wall Push-Up'             => 25.0,
+        'Door Towel Row'           => 30.0,
+        'Pike Push-Up with Knees'  => 20.0,
+        'Knee Plank (Duration)'    => 0.0,
+        'Chair Assisted Bodyweight Squat' => 20.0
+    ];
+
     private PDO $db;
 
-    public function __construct()
+    public function __construct(?PDO $db = null)
     {
-        $this->db = Database::getConnection();
+        $this->db = $db ?? Database::getConnection();
     }
 
     /**
@@ -204,20 +217,6 @@ class AnalyticsService
             $exercises = $this->db->query("SELECT id, name, movement_pattern FROM exercises LIMIT 6")->fetchAll(PDO::FETCH_ASSOC);
         }
 
-        // Base weights for common movements
-        $baseWeights = [
-            'Barbell Flat Bench Press' => 50.0,
-            'Barbell Back Squat'       => 60.0,
-            'Overhead Press (OHP)'     => 30.0,
-            'Barbell Bent-Over Row'    => 45.0,
-            'Dumbbell Biceps Curl'     => 12.0,
-            'Wall Push-Up'             => 25.0,
-            'Door Towel Row'           => 30.0,
-            'Pike Push-Up with Knees'  => 20.0,
-            'Knee Plank (Duration)'    => 0.0,
-            'Chair Assisted Bodyweight Squat' => 20.0
-        ];
-
         // 4 Weeks, 3 workouts per week = 12 historical sessions
         $now = time();
         $this->db->beginTransaction();
@@ -255,7 +254,7 @@ class AnalyticsService
 
                     foreach ($sessionExercises as $ex) {
                         $exName = $ex['name'];
-                        $baseW = $baseWeights[$exName] ?? 35.0;
+                        $baseW = self::BASE_WEIGHTS[$exName] ?? 35.0;
                         $actualW = $baseW + $weekIncrement;
 
                         // 3 Sets per exercise
