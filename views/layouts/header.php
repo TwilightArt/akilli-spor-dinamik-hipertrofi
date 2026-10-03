@@ -10,9 +10,19 @@ unset($_SESSION['flash']);
 <html lang="tr" class="dark h-full">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Akıllı spor ve dinamik hipertrofi platformu ile kişiselleştirilmiş antrenman programları oluşturun ve ilerlemenizi canlı olarak takip edin.">
+    <meta name="theme-color" content="#0b0f19">
+
+    <!-- Open Graph -->
+    <meta property="og:title" content="<?= Security::escape($pageTitle ?? 'Akıllı Spor & Dinamik Hipertrofi Platformu') ?>">
+    <meta property="og:description" content="Kişiselleştirilmiş antrenman programları oluşturun ve ilerlemenizi canlı olarak takip edin.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="<?= Security::escape('https://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI']) ?>">
+
     <title><?= Security::escape($pageTitle ?? 'Akıllı Spor & Dinamik Hipertrofi Platformu') ?></title>
     
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com">
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -55,7 +65,7 @@ unset($_SESSION['flash']);
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js"></script>
 
     <!-- Chart.js -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 
     <style>
         body {
