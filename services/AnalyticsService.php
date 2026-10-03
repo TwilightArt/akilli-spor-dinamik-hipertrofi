@@ -226,6 +226,9 @@ class AnalyticsService
         $this->db->beginTransaction();
 
         try {
+            $logParams = [];
+            $logPlaceholders = [];
+
             for ($week = 1; $week <= 4; $week++) {
                 for ($sessionIdx = 1; $sessionIdx <= 3; $sessionIdx++) {
                     $daysAgo = (4 - $week) * 7 + (3 - $sessionIdx) * 2 + 1;
@@ -265,32 +268,43 @@ class AnalyticsService
                             $reps = rand(8, 12);
                             $rir = ($week == 4 && $setNum == 3) ? '0' : ($setNum == 1 ? '3+' : '1-2');
 
-                            $lStmt = $this->db->prepare("
-                                INSERT INTO workout_logs (
-                                    user_id, session_id, exercise_id, set_number, set_type,
-                                    target_weight, actual_weight, target_reps, actual_reps,
-                                    rir_bucket, form_breakdown, created_at
-                                ) VALUES (
-                                    :uid, :sid, :eid, :set_num, 'reps',
-                                    :tw, :aw, 10, :reps,
-                                    :rir, 0, :created_at
-                                )
-                            ");
-                            $lStmt->execute([
-                                'uid'        => $userId,
-                                'sid'        => $sessionId,
-                                'eid'        => (int)$ex['id'],
-                                'set_num'    => $setNum,
-                                'tw'         => $setWeight,
-                                'aw'         => $setWeight,
-                                'reps'       => $reps,
-                                'rir'        => $rir,
-                                'created_at' => date('Y-m-d H:i:s', strtotime($sessionTimestamp) + ($setNum * 180))
-                            ]);
+                            $logParams[] = $userId;
+                            $logParams[] = $sessionId;
+                            $logParams[] = (int)$ex['id'];
+                            $logParams[] = $setNum;
+                            $logParams[] = $setWeight;
+                            $logParams[] = $setWeight;
+                            $logParams[] = $reps;
+                            $logParams[] = $rir;
+                            $logParams[] = date('Y-m-d H:i:s', strtotime($sessionTimestamp) + ($setNum * 180));
+
+                            $logPlaceholders[] = "(?, ?, ?, ?, 'reps', ?, ?, 10, ?, ?, 0, ?)";
                         }
                     }
                 }
             }
+
+            if (!empty($logPlaceholders)) {
+                // Determine maximum placeholders allowed by the database (SQLite typically limits to 999 or 32766)
+                // We'll chunk the inserts to be safe. We have 9 parameters per row.
+                // Let's use chunks of 50 rows (50 * 9 = 450 parameters).
+                $chunkSize = 50;
+                $totalRows = count($logPlaceholders);
+
+                for ($i = 0; $i < $totalRows; $i += $chunkSize) {
+                    $chunkPlaceholders = array_slice($logPlaceholders, $i, $chunkSize);
+                    $chunkParams = array_slice($logParams, $i * 9, count($chunkPlaceholders) * 9);
+
+                    $sql = "INSERT INTO workout_logs (
+                                user_id, session_id, exercise_id, set_number, set_type,
+                                target_weight, actual_weight, target_reps, actual_reps,
+                                rir_bucket, form_breakdown, created_at
+                            ) VALUES " . implode(', ', $chunkPlaceholders);
+
+                    $this->db->prepare($sql)->execute($chunkParams);
+                }
+            }
+
             $this->db->commit();
         } catch (\Throwable $e) {
             $this->db->rollBack();
