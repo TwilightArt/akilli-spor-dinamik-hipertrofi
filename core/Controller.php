@@ -54,9 +54,16 @@ abstract class Controller
      */
     protected function jsonResponse(array $data, int $statusCode = 200): void
     {
-        http_response_code($statusCode);
-        header('Content-Type: application/json; charset=utf-8');
-        echo json_encode($data, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
+        while (ob_get_level() > 0) {
+            ob_end_clean();
+        }
+
+        if (!headers_sent()) {
+            http_response_code($statusCode);
+            header('Content-Type: application/json; charset=utf-8');
+        }
+        $encoded = json_encode($data, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_INVALID_UTF8_SUBSTITUTE);
+        echo $encoded !== false ? $encoded : json_encode(['success' => false, 'error' => 'JSON encoding error']);
         exit;
     }
 
@@ -78,7 +85,7 @@ abstract class Controller
     }
 
     /**
-     * Require authenticated session or redirect to login
+     * Require authenticated session or redirect to login (for HTML pages)
      */
     protected function requireAuth(): array
     {
@@ -88,6 +95,45 @@ abstract class Controller
             $this->redirect('/login');
         }
         return $user;
+    }
+
+    /**
+     * Require authenticated session for API endpoints or return 401 JSON
+     */
+    protected function requireApiAuth(): array
+    {
+        $user = $this->getCurrentUser();
+        if (!$user) {
+            $this->jsonResponse([
+                'success'       => false,
+                'authenticated' => false,
+                'error'         => 'Oturum süreniz dolmuş veya giriş yapmadınız.'
+            ], 401);
+        }
+        return $user;
+    }
+
+    /**
+     * Get input data from JSON body or standard $_POST / $_GET
+     */
+    protected function getRequestData(): array
+    {
+        $input = $_GET;
+        $contentType = $_SERVER['CONTENT_TYPE'] ?? $_SERVER['HTTP_CONTENT_TYPE'] ?? '';
+
+        if (str_contains($contentType, 'application/json')) {
+            $rawInput = file_get_contents('php://input');
+            if (!empty($rawInput)) {
+                $decoded = json_decode($rawInput, true);
+                if (is_array($decoded)) {
+                    $input = array_merge($input, $decoded);
+                }
+            }
+        } else {
+            $input = array_merge($input, $_POST);
+        }
+
+        return $input;
     }
 
     /**

@@ -4,22 +4,25 @@
 -- Engine: InnoDB | Character Set: utf8mb4 | Collation: utf8mb4_unicode_ci
 -- ============================================================================
 
-SET FOREIGN_KEY_CHECKS = 0;
-DROP TABLE IF EXISTS `workout_logs`;
-DROP TABLE IF EXISTS `daily_weigh_ins`;
-DROP TABLE IF EXISTS `workout_sessions`;
-DROP TABLE IF EXISTS `program_exercises`;
-DROP TABLE IF EXISTS `program_days`;
-DROP TABLE IF EXISTS `user_programs`;
-DROP TABLE IF EXISTS `injury_reports`;
-DROP TABLE IF EXISTS `user_calibration_log`;
-DROP TABLE IF EXISTS `exercise_joint_stress`;
-DROP TABLE IF EXISTS `exercises`;
-DROP TABLE IF EXISTS `user_equipment`;
-DROP TABLE IF EXISTS `password_resets`;
-DROP TABLE IF EXISTS `login_attempts`;
-DROP TABLE IF EXISTS `users`;
-SET FOREIGN_KEY_CHECKS = 1;
+-- Production Safety: DROP TABLE statements are commented out to prevent accidental data loss.
+-- Uncomment ONLY when doing a complete database rebuild in a local/staging environment.
+--
+-- SET FOREIGN_KEY_CHECKS = 0;
+-- DROP TABLE IF EXISTS `workout_logs`;
+-- DROP TABLE IF EXISTS `daily_weigh_ins`;
+-- DROP TABLE IF EXISTS `workout_sessions`;
+-- DROP TABLE IF EXISTS `program_exercises`;
+-- DROP TABLE IF EXISTS `program_days`;
+-- DROP TABLE IF EXISTS `user_programs`;
+-- DROP TABLE IF EXISTS `injury_reports`;
+-- DROP TABLE IF EXISTS `user_calibration_log`;
+-- DROP TABLE IF EXISTS `exercise_joint_stress`;
+-- DROP TABLE IF EXISTS `exercises`;
+-- DROP TABLE IF EXISTS `user_equipment`;
+-- DROP TABLE IF EXISTS `password_resets`;
+-- DROP TABLE IF EXISTS `login_attempts`;
+-- DROP TABLE IF EXISTS `users`;
+-- SET FOREIGN_KEY_CHECKS = 1;
 
 -- ----------------------------------------------------------------------------
 -- 1. users
@@ -233,7 +236,7 @@ CREATE TABLE `workout_logs` (
   `session_id` INT NOT NULL,
   `exercise_id` INT NOT NULL,
   `set_number` TINYINT NOT NULL,
-  `set_type` ENUM('reps','duration') DEFAULT 'reps',
+  `set_type` ENUM('reps','duration','warmup') DEFAULT 'reps',
   `target_weight` DECIMAL(5,2) NULL,
   `actual_weight` DECIMAL(5,2) NOT NULL,
   `target_reps` TINYINT NULL,

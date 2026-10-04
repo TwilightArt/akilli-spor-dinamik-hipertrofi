@@ -19,7 +19,7 @@ class Security
     {
         if (session_status() === PHP_SESSION_NONE) {
             $isSecure = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
-                || (isset($_SERVER['SERVER_PORT']) && $_SERVER['SERVER_PORT'] == 443)
+                || (isset($_SERVER['SERVER_PORT']) && (int)$_SERVER['SERVER_PORT'] === 443)
                 || (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https');
 
             session_set_cookie_params([
@@ -70,11 +70,32 @@ class Security
     }
 
     /**
-     * Verify CSRF from POST or HTTP Header (X-CSRF-TOKEN)
+     * Verify CSRF from POST, HTTP Header (X-CSRF-Token) or JSON Body
      */
     public static function verifyRequestCsrf(): void
     {
         $token = $_POST['csrf_token'] ?? $_SERVER['HTTP_X_CSRF_TOKEN'] ?? null;
+        
+        if (!$token && function_exists('getallheaders')) {
+            $headers = getallheaders();
+            foreach ($headers as $k => $v) {
+                if (strcasecmp($k, 'X-CSRF-Token') === 0) {
+                    $token = (string)$v;
+                    break;
+                }
+            }
+        }
+
+        if (!$token) {
+            $raw = file_get_contents('php://input');
+            if (!empty($raw)) {
+                $decoded = json_decode($raw, true);
+                if (is_array($decoded) && !empty($decoded['csrf_token'])) {
+                    $token = (string)$decoded['csrf_token'];
+                }
+            }
+        }
+
         if (!self::validateCsrfToken($token)) {
             http_response_code(403);
             header('Content-Type: application/json; charset=utf-8');
@@ -88,15 +109,19 @@ class Security
 
     /**
      * Get Client IP address safely handling proxies
+     * Do NOT trust X-Forwarded-For or CF-Connecting-IP unless TRUST_PROXIES=true is explicitly set in .env
      */
     public static function getClientIp(): string
     {
-        if (!empty($_SERVER['HTTP_CF_CONNECTING_IP'])) {
-            return $_SERVER['HTTP_CF_CONNECTING_IP'];
-        }
-        if (!empty($_SERVER['HTTP_X_FORWARDED_FOR'])) {
-            $ips = explode(',', $_SERVER['HTTP_X_FORWARDED_FOR']);
-            return trim($ips[0]);
+        $trustProxy = strtolower((string)(getenv('TRUST_PROXIES') ?: '')) === 'true';
+        if ($trustProxy) {
+            if (!empty($_SERVER['HTTP_CF_CONNECTING_IP'])) {
+                return $_SERVER['HTTP_CF_CONNECTING_IP'];
+            }
+            if (!empty($_SERVER['HTTP_X_FORWARDED_FOR'])) {
+                $ips = explode(',', $_SERVER['HTTP_X_FORWARDED_FOR']);
+                return trim($ips[0]);
+            }
         }
         return $_SERVER['REMOTE_ADDR'] ?? '127.0.0.1';
     }
@@ -203,13 +228,26 @@ class Security
     }
 
     /**
-     * XSS Filter for output strings
+     * Sanitize output against XSS
      */
-    public static function escape(?string $str): string
+    public static function e(?string $string): string
     {
-        if ($str === null) {
-            return '';
-        }
-        return htmlspecialchars($str, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+        return htmlspecialchars((string)$string, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+    }
+
+    /**
+     * Alias of e(). Views and controllers call Security::escape().
+     */
+    public static function escape(?string $string): string
+    {
+        return self::e($string);
+    }
+
+    /**
+     * True only when APP_ENV=local is explicitly set (default is production-safe: false).
+     */
+    public static function isLocalEnv(): bool
+    {
+        return strtolower((string)(getenv('APP_ENV') ?: '')) === 'local';
     }
 }

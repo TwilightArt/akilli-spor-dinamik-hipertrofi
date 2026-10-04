@@ -34,12 +34,22 @@ abstract class Model
 
         foreach ($conditions as $column => $value) {
             $paramKey = "col_" . str_replace('.', '_', $column);
-            $whereClauses[] = "`{$column}` = :{$paramKey}";
+            $quotedColumn = str_replace('.', '`.`', $column);
+            $whereClauses[] = "`{$quotedColumn}` = :{$paramKey}";
             $params[$paramKey] = $value;
         }
 
         $whereSql = !empty($whereClauses) ? "WHERE " . implode(' AND ', $whereClauses) : "";
         $limitSql = $limit !== null ? "LIMIT {$limit}" : "";
+
+        $safeOrderBy = [];
+        foreach (explode(',', $orderBy) as $part) {
+            $part = trim($part);
+            if (preg_match('/^[a-zA-Z0-9_\.]+(?:\s+(?:ASC|DESC))?$/i', $part)) {
+                $safeOrderBy[] = $part;
+            }
+        }
+        $orderBy = !empty($safeOrderBy) ? implode(', ', $safeOrderBy) : 'id DESC';
 
         $sql = "SELECT * FROM `{$this->table}` {$whereSql} ORDER BY {$orderBy} {$limitSql}";
         $stmt = $this->db->prepare($sql);

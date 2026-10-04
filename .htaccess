@@ -21,14 +21,22 @@ AddDefaultCharset UTF-8
     RewriteCond %{HTTP:X-Forwarded-Proto} !https
     RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
 
-    # 2. Block direct access to sensitive config, sql, git, cron or markdown files
+    # 2. Block direct access to sensitive config, sql, git, cron, backend models/core or markdown files
     RewriteRule ^config/ - [F,L]
+    RewriteRule ^core/ - [F,L]
+    RewriteRule ^models/ - [F,L]
+    RewriteRule ^services/ - [F,L]
+    RewriteRule ^views/ - [F,L]
     RewriteRule ^database/ - [F,L]
     RewriteRule ^cron/ - [F,L]
+    RewriteRule ^tests/ - [F,L]
+    RewriteRule ^seed_demo\.php$ - [F,L]
+    RewriteRule ^repomix-output\.xml$ - [F,L]
     RewriteRule ^\.env.* - [F,L]
+    RewriteRule ^\.git.* - [F,L]
     # PWA manifest must stay public (otherwise "Add to Home Screen" breaks); all other .json stays blocked
     RewriteRule ^manifest\.json$ - [L]
-    RewriteRule \.(sql|md|log|ini|json|lock)$ - [F,L]
+    RewriteRule \.(sql|md|log|ini|json|lock|xml)$ - [F,L]
 
     # 3. Clean URLs: Route all requests through index.php if file/dir does not exist
     RewriteCond %{REQUEST_FILENAME} !-f
@@ -52,6 +60,9 @@ AddDefaultCharset UTF-8
     
     # Permissions Policy
     Header always set Permissions-Policy "geolocation=(), microphone=(), camera=()"
+
+    # Content Security Policy (CSP)
+    Header always set Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.tailwindcss.com https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com; img-src 'self' data: https:; connect-src 'self' https://generativelanguage.googleapis.com;"
 </IfModule>
 
 # Gzip / Brotli Compression for fast loading

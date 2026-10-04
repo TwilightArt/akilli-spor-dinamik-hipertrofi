@@ -77,6 +77,22 @@ class PlateSolverService
             }
         }
 
+        // Round to nearest by checking if adding the smallest available plate brings us closer
+        if (!empty($parsedInventory)) {
+            $smallestPlate = end($parsedInventory);
+            $smallestWeight = $smallestPlate['weight'];
+            $gap = $sideNeeded - $currentSideWeight;
+            
+            if ($gap >= ($smallestWeight / 2.0) - $tolerance) {
+                // Determine if we have enough of this plate
+                $currentCount = $sidePlates[$smallestPlate['key']] ?? 0;
+                if ($currentCount < $smallestPlate['pairCount']) {
+                    $currentSideWeight += $smallestWeight;
+                    $sidePlates[$smallestPlate['key']] = $currentCount + 1;
+                }
+            }
+        }
+
         $feasibleTotal = round($barWeight + ($currentSideWeight * 2), 2);
         $remainder = round($targetWeight - $feasibleTotal, 2);
 

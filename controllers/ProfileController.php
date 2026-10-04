@@ -95,6 +95,12 @@ class ProfileController extends Controller
 
         $name = trim($_POST['name'] ?? '');
         $gender = (string)($_POST['gender'] ?? 'male');
+        
+        if (!in_array($gender, ['male', 'female'], true)) {
+            $this->setFlash('danger', 'Lütfen geçerli bir cinsiyet seçin.');
+            $this->redirect('/profile');
+        }
+
         $birthDate = (string)($_POST['birth_date'] ?? '');
         $heightCm = max(100.0, min(250.0, (float)($_POST['height_cm'] ?? 175.0)));
         $currentWeightKg = max(30.0, min(300.0, (float)($_POST['current_weight_kg'] ?? 75.0)));
@@ -141,34 +147,8 @@ class ProfileController extends Controller
             'calisthenic_score' => $tierResult['composite_score']
         ]);
 
-        // 2. Log weight if updated
-        $weighInModel = new DailyWeighIn();
-        $weighInModel->logWeight($userId, $currentWeightKg, date('Y-m-d'), 'Profil Ayarları Güncellemesi');
-
-        // 3. Update Joint Complaints / Injury Reports
-        $submittedInjuries = $_POST['injuries'] ?? [];
-        if (!is_array($submittedInjuries)) {
-            $submittedInjuries = [];
-        }
-
-        $allowedJoints = ['shoulder', 'knee', 'lower_back', 'elbow', 'wrist'];
-        $cleanJoints = array_intersect($submittedInjuries, $allowedJoints);
-
-        // Clear past reports from today or refresh active reports
-        $this->db->prepare("DELETE FROM injury_reports WHERE user_id = :uid")->execute(['uid' => $userId]);
-
-        $insertStmt = $this->db->prepare("
-            INSERT INTO injury_reports (user_id, joint_area, severity, reported_date, notes) 
-            VALUES (:uid, :joint, 'moderate', :rdate, 'Kullanıcı profilinden bildirildi')
-        ");
-        $today = date('Y-m-d');
-        foreach ($cleanJoints as $joint) {
-            $insertStmt->execute([
-                'uid'   => $userId,
-                'joint' => $joint,
-                'rdate' => $today
-            ]);
-        }
+        // Günlük tartı ve sakatlık raporları artık kendi özel sayfalarından / modüllerinden yönetilecek.
+        // Profil kaydı sırasında bunların ezilmesi (overwrite) engellendi.
 
         // 4. Regenerate weekly program if requested or if fitness level changed
         $shouldRegenerate = !empty($_POST['regenerate_program']) || ($oldLevel !== $finalFitnessLevel);
@@ -220,9 +200,8 @@ class ProfileController extends Controller
             $this->redirect('/profile');
         }
 
-        // Update to new password
-        $newHash = password_hash($newPassword, PASSWORD_DEFAULT);
-        $this->userModel->update($userId, ['password_hash' => $newHash]);
+        // Update to new password via User model (Argon2id)
+        $this->userModel->updatePassword($userId, $newPassword);
 
         $this->setFlash('success', 'Parolanız başarıyla güncellendi.');
         $this->redirect('/profile');

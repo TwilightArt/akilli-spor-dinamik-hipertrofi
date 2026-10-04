@@ -1,0 +1,59 @@
+name: Continuous Integration
+
+on:
+  push:
+    branches: [ "**" ]
+  pull_request:
+    branches: [ "**" ]
+
+jobs:
+  test:
+    name: Run Tests
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: '8.2'
+        extensions: pdo, pdo_sqlite, curl, json, mbstring
+        coverage: none
+
+    - name: Prepare in-memory SQLite (Bootstrap)
+      run: |
+        mkdir -p database
+        # Create a ramdisk/tmpfs file for database to run purely in memory
+        touch /dev/shm/local.sqlite
+        # Symlink the hardcoded sqlite path to the memory-backed file
+        ln -sf /dev/shm/local.sqlite database/local.sqlite
+        
+        # Create a .env file to force SQLite driver
+        echo "DB_DRIVER=sqlite" > .env
+        echo "APP_ENV=testing" >> .env
+
+    - name: Start PHP Built-in Server
+      run: |
+        # Start server in the background
+        php -S 127.0.0.1:8088 -t public > server.log 2>&1 &
+        # Wait a moment for the server to initialize
+        sleep 2
+        # Check if server is running
+        curl -s http://127.0.0.1:8088/index.html > /dev/null || (echo "Server failed to start. Logs:" && cat server.log && exit 1)
+
+    - name: Run FAZ 1 API Unit/Integration Tests
+      run: php tests/test_api_faz1.php
+
+    - name: Run FAZ 1 API HTTP Tests
+      run: php tests/test_api_http.php
+
+    - name: Run Full E2E Tests
+      run: php tests/test_full_e2e.php
+
+    - name: Dump Server Logs on Failure
+      if: failure()
+      run: |
+        echo "=== PHP BUILT-IN SERVER LOGS ==="
+        cat server.log

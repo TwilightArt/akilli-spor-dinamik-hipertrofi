@@ -78,26 +78,23 @@ class HypertrophyEngine
             }
         } elseif ($rirBucket === '0') {
             // RIR = 0 (Failure)
-            // Check consecutive RIR 0 in recent sets for this exercise
-            $consecutive0Count = $this->workoutLogModel->getConsecutiveRir0Count($sessionId, $exerciseId);
-
-            if ($consecutive0Count >= 1) {
-                // Second or more consecutive 0: Drop weight by 10%
+            if ($actualReps < $targetReps) {
+                // Failed to hit target reps: Drop weight
                 $direction = 'DECREASE';
                 if ($actualWeight > 0.0) {
                     $dropAmount = round($actualWeight * Constants::RIR0_CONSECUTIVE_DROP_PCT, 2);
                     $nextWeight = max(0.0, round($actualWeight - $dropAmount, 2));
-                    $reason = "Üst üste tükenişe (RIR 0) ulaşıldı. Sinir sistemi ve hipertrofi toparlanması için ağırlık %10 düşürüldü (-{$dropAmount} kg).";
+                    $reason = "Hedef tekrara ulaşılamadı (Tükeniş). Toparlanma için ağırlık düşürüldü (-{$dropAmount} kg).";
                 } else {
                     $nextWeight = 0.0;
-                    $reason = "Üst üste tükenişe (RIR 0) ulaşıldı. Aşırı yorgunluğu önlemek için sonraki sette tekrar sayısını 2 tekrar düşürün.";
+                    $reason = "Hedef tekrara ulaşılamadı (Tükeniş). Sonraki sette tekrar sayısını azaltın.";
                 }
             } else {
-                // First RIR 0: Maintain weight, extend rest time by 30 seconds
+                // Hit target reps but RIR 0 (Max effort): Maintain weight, extend rest time by 30 seconds
                 $direction = 'MAINTAIN';
                 $restExtension = Constants::RIR0_REST_EXTENSION_SECONDS;
                 $nextWeight = $actualWeight;
-                $reason = "İlk tükeniş seti (RIR 0). Ağırlık korundu, toparlanma için dinlenme süresi +30 sn uzatıldı.";
+                $reason = "Tükeniş seti (RIR 0) fakat hedef tekrar tamamlandı. Ağırlık korundu, toparlanma için dinlenme süresi +30 sn uzatıldı.";
             }
         } elseif ($rirBucket === '1-2') {
             // Ideal Hypertrophy Window (RIR 1-2)
@@ -130,8 +127,8 @@ class HypertrophyEngine
 
                 // Enforce minimum step if ceiling allows, but never exceed maxStepAllowed
                 $step = min($rawIncrease, $maxStepAllowed);
-                if ($step < 0.5) {
-                    $step = min(1.25, Constants::MAX_SINGLE_SET_KG);
+                if ($step < 0.5 && $maxStepAllowed >= 0.5) {
+                    $step = min(1.25, $maxStepAllowed);
                 }
 
                 $candidateNextWeight = round($actualWeight + $step, 2);
@@ -139,10 +136,8 @@ class HypertrophyEngine
                 // 3. SESSION BASELINE & +20% SAFETY CEILING
                 $firstSetWeight = $this->workoutLogModel->getFirstSetWeight($sessionId, $exerciseId);
                 if ($firstSetWeight === null || $firstSetWeight <= 0.0) {
-                    $maxSessionWeight = round($actualWeight * (1.0 + Constants::MAX_SESSION_INCREASE_PCT), 2);
-                    if ($maxSessionWeight <= 0.0) {
-                        $maxSessionWeight = 7.5;
-                    }
+                    // No working sets yet, so no session ceiling applies
+                    $maxSessionWeight = 9999.0;
                 } else {
                     $maxSessionWeight = round($firstSetWeight * (1.0 + Constants::MAX_SESSION_INCREASE_PCT), 2);
                 }
@@ -205,8 +200,12 @@ class HypertrophyEngine
                 }
             }
 
-            // Snap to physically achievable load
-            $nextWeight = $plateResult['feasible_weight'];
+            // Snap to physically achievable load, guaranteeing MAINTAIN and INCREASE never decrease weight
+            if (($direction === 'MAINTAIN' || $direction === 'INCREASE') && $actualWeight > 0.0 && $plateResult['feasible_weight'] < $actualWeight) {
+                $nextWeight = $actualWeight;
+            } else {
+                $nextWeight = $plateResult['feasible_weight'];
+            }
         }
 
         return [

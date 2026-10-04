@@ -21,8 +21,7 @@ class GeminiConfig
     public static function getApiUrl(): string
     {
         $model = self::getModel();
-        $key = self::getApiKey();
-        return "https://generativelanguage.googleapis.com/v1beta/models/{$model}:generateContent?key={$key}";
+        return "https://generativelanguage.googleapis.com/v1beta/models/{$model}:generateContent";
     }
 
     public static function getTimeoutSeconds(): float

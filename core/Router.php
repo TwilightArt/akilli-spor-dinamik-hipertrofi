@@ -5,6 +5,7 @@ namespace App\Core;
 
 /**
  * Lightweight MVC Router with Parameter Matching & Middleware Support
+ * Handles endpoints like /api/workout/coach
  */
 class Router
 {
@@ -45,6 +46,17 @@ class Router
 
     public function dispatch(string $uri, string $requestMethod): void
     {
+        $method = strtoupper($requestMethod);
+
+        // Preflight OPTIONS support
+        if ($method === 'OPTIONS') {
+            http_response_code(204);
+            header('Access-Control-Allow-Origin: *');
+            header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
+            header('Access-Control-Allow-Headers: Content-Type, X-CSRF-Token, Authorization');
+            exit;
+        }
+
         // Remove query strings
         $path = parse_url($uri, PHP_URL_PATH) ?: '/';
         $path = '/' . trim($path, '/');
@@ -52,7 +64,7 @@ class Router
             $path = '/';
         }
 
-        $method = strtoupper($requestMethod);
+        $isApi = str_starts_with($path, '/api/');
 
         foreach ($this->routes as $route) {
             if ($route['method'] !== $method) {
@@ -60,38 +72,55 @@ class Router
             }
 
             if (preg_match($route['pattern'], $path, $matches)) {
-                // Execute Middlewares
-                foreach ($route['middlewares'] as $middleware) {
-                    $this->executeMiddleware($middleware);
-                }
+                try {
+                    // Execute Middlewares
+                    foreach ($route['middlewares'] as $middleware) {
+                        $this->executeMiddleware($middleware, $path);
+                    }
 
-                // Extract named parameter arguments as positional values for robust PHP 8 dispatching
-                $params = array_values(array_filter($matches, 'is_string', ARRAY_FILTER_USE_KEY));
+                    // Extract named parameter arguments as positional values for robust PHP 8 dispatching
+                    $params = array_values(array_filter($matches, 'is_string', ARRAY_FILTER_USE_KEY));
 
-                // Call Handler
-                if (is_callable($route['handler'])) {
-                    call_user_func_array($route['handler'], $params);
-                    return;
-                }
+                    // Call Handler
+                    if (is_callable($route['handler'])) {
+                        call_user_func_array($route['handler'], $params);
+                        return;
+                    }
 
-                if (is_array($route['handler'])) {
-                    [$controllerClass, $action] = $route['handler'];
-                    if (class_exists($controllerClass)) {
-                        $controller = new $controllerClass();
-                        if (method_exists($controller, $action)) {
-                            call_user_func_array([$controller, $action], $params);
-                            return;
+                    if (is_array($route['handler'])) {
+                        [$controllerClass, $action] = $route['handler'];
+                        if (class_exists($controllerClass)) {
+                            $controller = new $controllerClass();
+                            if (method_exists($controller, $action)) {
+                                call_user_func_array([$controller, $action], $params);
+                                return;
+                            }
                         }
                     }
-                }
 
-                throw new \RuntimeException("Handler not found for route: {$path}");
+                    throw new \RuntimeException("Handler not found for route: {$path}");
+                } catch (\Throwable $e) {
+                    error_log("Route execution error [{$path}]: " . $e->getMessage());
+                    if ($isApi) {
+                        http_response_code(500);
+                        header('Content-Type: application/json; charset=utf-8');
+                        $msg = Security::isLocalEnv()
+                            ? $e->getMessage()
+                            : 'Sunucu tarafında beklenmeyen bir hata oluştu.';
+                        echo json_encode([
+                            'success' => false,
+                            'error'   => $msg
+                        ], JSON_UNESCAPED_UNICODE);
+                        exit;
+                    }
+                    throw $e;
+                }
             }
         }
 
         // 404 Not Found fallback
         http_response_code(404);
-        if (str_starts_with($path, '/api/')) {
+        if ($isApi) {
             header('Content-Type: application/json; charset=utf-8');
             echo json_encode(['success' => false, 'error' => 'Endpoint bulunamadı (404)'], JSON_UNESCAPED_UNICODE);
         } else {
@@ -99,12 +128,25 @@ class Router
         }
     }
 
-    private function executeMiddleware(string $middleware): void
+    private function executeMiddleware(string $middleware, string $path): void
     {
+        $isApi = str_starts_with($path, '/api/');
+
         switch ($middleware) {
             case 'auth':
+            case 'api_auth':
                 Security::startSession();
                 if (empty($_SESSION['user'])) {
+                    if ($isApi || $middleware === 'api_auth') {
+                        http_response_code(401);
+                        header('Content-Type: application/json; charset=utf-8');
+                        echo json_encode([
+                            'success'       => false,
+                            'authenticated' => false,
+                            'error'         => 'Oturum süreniz dolmuş veya giriş yapmadınız.'
+                        ], JSON_UNESCAPED_UNICODE);
+                        exit;
+                    }
                     $_SESSION['flash'] = [
                         'type'    => 'warning',
                         'message' => 'Lütfen devam etmek için giriş yapınız.'
@@ -117,6 +159,15 @@ class Router
             case 'guest':
                 Security::startSession();
                 if (!empty($_SESSION['user'])) {
+                    if ($isApi) {
+                        http_response_code(400);
+                        header('Content-Type: application/json; charset=utf-8');
+                        echo json_encode([
+                            'success' => false,
+                            'error'   => 'Zaten giriş yapmış durumdasınız.'
+                        ], JSON_UNESCAPED_UNICODE);
+                        exit;
+                    }
                     header('Location: /workout/dashboard');
                     exit;
                 }

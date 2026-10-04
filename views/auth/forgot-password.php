@@ -11,7 +11,7 @@
         <?php if (!empty($_SESSION['dev_reset_link'])): ?>
             <div class="mb-5 p-3 rounded-xl bg-indigo-950/70 border border-indigo-500/30 text-xs text-indigo-200">
                 <span class="font-bold block text-indigo-400 mb-1">Geliştirici Test Bağlantısı:</span>
-                <a href="<?= $_SESSION['dev_reset_link'] ?>" class="text-brand-300 underline break-all"><?= $_SESSION['dev_reset_link'] ?></a>
+                <a href="<?= \App\Core\Security::escape($_SESSION['dev_reset_link']) ?>" class="text-brand-300 underline break-all"><?= \App\Core\Security::escape($_SESSION['dev_reset_link']) ?></a>
             </div>
             <?php unset($_SESSION['dev_reset_link']); ?>
         <?php endif; ?>

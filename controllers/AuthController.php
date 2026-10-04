@@ -8,6 +8,7 @@ use App\Core\Security;
 use App\Models\User;
 use App\Models\PasswordReset;
 use App\Models\Equipment;
+use App\Config\Constants;
 
 class AuthController extends Controller
 {
@@ -84,7 +85,7 @@ class AuthController extends Controller
     {
         Security::verifyRequestCsrf();
 
-        $name = trim($_POST['name'] ?? '');
+        $name = htmlspecialchars(trim($_POST['name'] ?? ''), ENT_QUOTES, 'UTF-8');
         $email = strtolower(trim($_POST['email'] ?? ''));
         $password = (string)($_POST['password'] ?? '');
         $gender = (string)($_POST['gender'] ?? 'male');
@@ -95,6 +96,37 @@ class AuthController extends Controller
         if (empty($name) || empty($email) || strlen($password) < 8 || empty($birthDate)) {
             $_SESSION['old_input'] = $_POST;
             $this->setFlash('danger', 'Lütfen tüm alanları eksiksiz doldurun. Parola en az 8 karakter olmalıdır.');
+            $this->redirect('/register');
+        }
+
+        if (!in_array($gender, ['male', 'female'], true)) {
+            $_SESSION['old_input'] = $_POST;
+            $this->setFlash('danger', 'Lütfen geçerli bir cinsiyet seçin.');
+            $this->redirect('/register');
+        }
+
+        $bDateObj = \DateTime::createFromFormat('Y-m-d', $birthDate);
+        if (!$bDateObj || $bDateObj->format('Y-m-d') !== $birthDate) {
+            $_SESSION['old_input'] = $_POST;
+            $this->setFlash('danger', 'Lütfen geçerli bir doğum tarihi (Yıl-Ay-Gün) girin.');
+            $this->redirect('/register');
+        }
+        $age = (int)(new \DateTime())->diff($bDateObj)->y;
+        if ($age < 13 || $age > 100) {
+            $_SESSION['old_input'] = $_POST;
+            $this->setFlash('danger', 'Platformumuzu kullanabilmek için yaşınız 13 ile 100 arasında olmalıdır.');
+            $this->redirect('/register');
+        }
+
+        if ($heightCm < 100.0 || $heightCm > 250.0) {
+            $_SESSION['old_input'] = $_POST;
+            $this->setFlash('danger', 'Boy 100 cm ile 250 cm arasında olmalıdır.');
+            $this->redirect('/register');
+        }
+
+        if ($currentWeightKg < 30.0 || $currentWeightKg > 300.0) {
+            $_SESSION['old_input'] = $_POST;
+            $this->setFlash('danger', 'Kilo 30 kg ile 300 kg arasında olmalıdır.');
             $this->redirect('/register');
         }
 
@@ -131,7 +163,7 @@ class AuthController extends Controller
         } catch (\Throwable $e) {
             error_log("Registration error: " . $e->getMessage());
             $_SESSION['old_input'] = $_POST;
-            $this->setFlash('danger', 'Kayıt sırasında bir hata oluştu: ' . $e->getMessage());
+            $this->setFlash('danger', 'Kayıt sırasında bir sistem hatası oluştu. Lütfen bilgilerinizi kontrol edip tekrar deneyin.');
             $this->redirect('/register');
         }
     }
@@ -168,13 +200,31 @@ class AuthController extends Controller
 
         if ($user) {
             $token = $this->passwordResetModel->createResetToken($email);
-            // In cPanel production, triggers mail(). For display / testing:
-            $resetLink = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http")
-                . "://{$_SERVER['HTTP_HOST']}/reset-password?email=" . urlencode($email) . "&token=" . $token;
 
-            // Log or send mail
-            error_log("Password reset link generated for {$email}: {$resetLink}");
-            $_SESSION['dev_reset_link'] = $resetLink;
+            // Base URL comes from config, NOT from the Host header (prevents host header poisoning).
+            $baseUrl = rtrim((string)(getenv('APP_URL') ?: ''), '/');
+            if ($baseUrl === '') {
+                $scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+                $baseUrl = $scheme . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost');
+            }
+            $resetLink = $baseUrl . '/reset-password?email=' . urlencode($email) . '&token=' . $token;
+
+            if (Security::isLocalEnv()) {
+                // Local development only: show the link on screen, never in production.
+                error_log("Password reset link generated for {$email}: {$resetLink}");
+                $_SESSION['dev_reset_link'] = $resetLink;
+            } else {
+                // Production: the link is delivered ONLY by e-mail, never to the requester's browser.
+                $from = (string)(getenv('MAIL_FROM') ?: 'no-reply@' . parse_url($baseUrl, PHP_URL_HOST));
+                $subject = '=?UTF-8?B?' . base64_encode('Parola sıfırlama bağlantınız') . '?=';
+                $body = "Merhaba,\r\n\r\nParolanızı sıfırlamak için aşağıdaki bağlantıyı kullanın "
+                      . "(" . Constants::PASSWORD_RESET_EXPIRY_HOURS . " saat geçerlidir):\r\n\r\n{$resetLink}\r\n\r\n"
+                      . "Bu talebi siz yapmadıysanız bu e-postayı yok sayabilirsiniz.\r\n";
+                $headers = "From: {$from}\r\nContent-Type: text/plain; charset=UTF-8\r\n";
+                if (!@mail($email, $subject, $body, $headers)) {
+                    error_log("Password reset mail failed for user id " . (int)$user['id']);
+                }
+            }
         }
 
         $this->setFlash('info', 'Eğer kayıtlı bir e-posta adresi girdiyseniz, şifre sıfırlama bağlantısı oluşturuldu.');

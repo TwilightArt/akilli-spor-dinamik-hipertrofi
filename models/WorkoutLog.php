@@ -43,7 +43,9 @@ class WorkoutLog extends Model
         $stmt = $this->db->prepare("
             SELECT actual_weight 
             FROM workout_logs 
-            WHERE session_id = :sid AND exercise_id = :eid 
+            WHERE session_id = :sid 
+              AND exercise_id = :eid 
+              AND set_type != 'warmup'
             ORDER BY set_number ASC 
             LIMIT 1
         ");

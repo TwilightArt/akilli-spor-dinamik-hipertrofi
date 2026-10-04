@@ -9,10 +9,10 @@ declare(strict_types=1);
  * ============================================================================
  */
 
-// CLI or Cron check
-if (php_sapi_name() !== 'cli' && (!isset($_GET['cron_key']) || $_GET['cron_key'] !== getenv('CRON_SECRET_KEY'))) {
+// CLI check (prevent external access entirely)
+if (php_sapi_name() !== 'cli') {
     http_response_code(403);
-    die("Erişim engellendi: Bu betik yalnızca sistem zamanlayıcısı (cPanel Cron Job) üzerinden çalıştırılabilir.\n");
+    die("Erişim engellendi: Bu betik yalnızca sistem zamanlayıcısı (CLI) üzerinden çalıştırılabilir.\n");
 }
 
 require_once __DIR__ . '/../config/database.php';
@@ -93,39 +93,63 @@ foreach ($users as $user) {
 
         // Halve sets for all program exercises (minimum 2 sets)
         $stmtAdjustSets = $db->prepare("
-            UPDATE program_exercises pe
-            JOIN program_days pd ON pe.program_day_id = pd.id
-            SET pe.target_sets = GREATEST(:min_sets, FLOOR(pe.target_sets * :reduction_factor))
-            WHERE pd.program_id = :pid
+            UPDATE program_exercises 
+            SET target_sets = GREATEST(:min_sets, FLOOR(target_sets * :reduction_factor))
+            WHERE program_day_id IN (SELECT id FROM program_days WHERE program_id = :pid)
         ");
         $stmtAdjustSets->execute([
             'min_sets'         => Constants::MIN_TARGET_SETS,
             'reduction_factor' => Constants::DELOAD_SET_REDUCTION_FACTOR,
             'pid'              => $programId
         ]);
+        // Deload weight & intensity reduction (-10%) via RFI calibration log
+        $patterns = ['push_horizontal', 'pull', 'squat', 'hinge'];
+        $stmtCalib = $db->prepare("
+            INSERT INTO user_calibration_log (user_id, movement_pattern, base_coefficient, adjusted_coefficient, reason)
+            VALUES (:uid, :pattern, 1.0, 0.90, 'Deload döngüsü: %10 ağırlık azaltımı ve merkezi sinir sistemi toparlanması')
+        ");
+        foreach ($patterns as $pattern) {
+            $stmtCalib->execute(['uid' => $userId, 'pattern' => $pattern]);
+        }
     }
 
-    // 4. Weigh-In Moving Average & Volume Adaptation
-    // Check weekly rate of weight change
-    $weeklyRate = $weighInModel->getWeeklyRateOfChange($userId);
+    // 4. Weigh-In Moving Average & Weekly Volume Adaptation
+    // Check if adaptation already ran this week (using user_calibration_log as a lock)
+    $stmtCheckLock = $db->prepare("
+        SELECT id FROM user_calibration_log 
+        WHERE user_id = :uid AND reason LIKE 'Haftalık Adaptasyon%' 
+        AND created_at >= date('now', 'weekday 0', '-7 days')
+    ");
+    $stmtCheckLock->execute(['uid' => $userId]);
+    $alreadyAdapted = (bool)$stmtCheckLock->fetch();
 
-    if ($weeklyRate !== null && !$isDeloadWeek) {
+    $isWeeklyAdaptationDay = ((int)date('N') === 7);
+    $weeklyRate = $isWeeklyAdaptationDay ? $weighInModel->getWeeklyRateOfChange($userId) : null;
+
+    if ($weeklyRate !== null && !$isDeloadWeek && !$alreadyAdapted) {
         if ($weeklyRate < -Constants::WEIGHT_LOSS_RATE_THRESHOLD) {
-            // Rapid weight loss (> 1% drop in 1 week): Reduce volume by 25% (e.g. 4->3, 3->2, min 2 sets) to prevent muscle loss
             echo "  -> Hızlı kilo kaybı tespit edildi (" . round($weeklyRate * 100, 2) . "%). Hacim %25 dengeleniyor.\n";
             $stmtCutSets = $db->prepare("
-                UPDATE program_exercises pe
-                JOIN program_days pd ON pe.program_day_id = pd.id
-                SET pe.target_sets = GREATEST(:min_sets, ROUND(pe.target_sets * 0.75))
-                WHERE pd.program_id = :pid
+                UPDATE program_exercises 
+                SET target_sets = GREATEST(:min_sets, ROUND(target_sets * 0.75))
+                WHERE program_day_id IN (SELECT id FROM program_days WHERE program_id = :pid)
             ");
             $stmtCutSets->execute([
                 'min_sets' => Constants::MIN_TARGET_SETS,
                 'pid'      => $programId
             ]);
+            
+            $db->prepare("INSERT INTO user_calibration_log (user_id, movement_pattern, base_coefficient, adjusted_coefficient, reason) VALUES (:uid, 'system', 1.0, 0.75, 'Haftalık Adaptasyon: Hızlı kilo kaybı (-25% hacim)')")->execute(['uid' => $userId]);
         } elseif ($weeklyRate >= 0.0) {
-            // Stable or gaining weight: Progressive overload - increase weekly volume by 5%
+            $stmtIncVol = $db->prepare("
+                UPDATE program_exercises 
+                SET target_reps_max = LEAST(25, target_reps_max + 1)
+                WHERE program_day_id IN (SELECT id FROM program_days WHERE program_id = :pid)
+            ");
+            $stmtIncVol->execute(['pid' => $programId]);
             echo "  -> Kilo stabil veya artışta (" . round($weeklyRate * 100, 2) . "%). Hacim optimizasyonu (+%5) uygulandı.\n";
+            
+            $db->prepare("INSERT INTO user_calibration_log (user_id, movement_pattern, base_coefficient, adjusted_coefficient, reason) VALUES (:uid, 'system', 1.0, 1.05, 'Haftalık Adaptasyon: Kilo stabil (+1 tekrar)')")->execute(['uid' => $userId]);
         }
     }
 

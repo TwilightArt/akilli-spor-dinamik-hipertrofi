@@ -1,7 +1,7 @@
 <?php
 use App\Core\Security;
 
-$activeExName = $activeExercise ? Security::escape($activeExercise['name']) : 'Egzersiz Seçilmedi';
+$activeExName = $activeExercise ? Security::escape($activeExercise['name']) : 'Egzersiz SeÃ§ilmedi';
 $activeExGroup = $activeExercise ? Security::escape($activeExercise['primary_muscle_group'] ?? '') : '';
 $activeExPattern = $activeExercise ? Security::escape($activeExercise['movement_pattern'] ?? '') : '';
 $activeExEquipment = $activeExercise ? Security::escape($activeExercise['required_equipment'] ?? '') : '';
@@ -50,22 +50,23 @@ foreach ($allPeaks as $p) {
             <div>
                 <div class="flex items-center gap-2 mb-2">
                     <span class="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-brand-500/10 text-brand-300 border border-brand-500/20">
-                        <i class="fa-solid fa-chart-line mr-1"></i> Ağırlık & Güç Analitiği
+                        <i class="fa-solid fa-chart-line mr-1"></i> AÄŸÄ±rlÄ±k & GÃ¼Ã§ AnalitiÄŸi
                     </span>
                     <span class="px-3 py-1 rounded-full text-xs font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
                         Progressive Overload Takibi
                     </span>
                 </div>
                 <h1 class="text-2xl sm:text-3xl font-black font-display text-white tracking-tight">
-                    Hareket Bazlı Ağırlık Gelişimi & Zirve Metrikleri
+                    Hareket BazlÄ± AÄŸÄ±rlÄ±k GeliÅŸimi & Zirve Metrikleri
                 </h1>
                 <p class="text-xs sm:text-sm text-slate-400 mt-1 max-w-2xl">
-                    Her egzersizde tarihten bugüne kaç kiloya kadar çıkıldığını, tek tekrar maksimumu (1RM) kapasitenizi ve antrenman seansları arasındaki aşamalı aşırı yüklenme eğrisini canlı grafiklerle inceleyin.
+                    Her egzersizde tarihten bugÃ¼ne kaÃ§ kiloya kadar Ã§Ä±kÄ±ldÄ±ÄŸÄ±nÄ±, tek tekrar maksimumu (1RM) kapasitenizi ve antrenman seanslarÄ± arasÄ±ndaki aÅŸamalÄ± aÅŸÄ±rÄ± yÃ¼klenme eÄŸrisini canlÄ± grafiklerle inceleyin.
                 </p>
             </div>
 
-            <!-- Quick Action: Demo Data Seeder for immediate testing -->
+            <!-- Quick Action: Demo Data Seeder (Local dev only) -->
             <div class="flex items-center gap-3 shrink-0">
+                <?php if (\App\Core\Security::isLocalEnv()): ?>
                 <form action="/analytics/sample_data" method="POST" onsubmit="return confirm('Hesabınıza 4 haftalık gerçekçi kademeli ağırlık artış geçmişi eklensin mi?');">
                     <input type="hidden" name="csrf_token" value="<?= $csrfToken ?>">
                     <button type="submit" class="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white border border-slate-700 text-xs font-bold transition-all flex items-center gap-2 shadow-lg">
@@ -73,9 +74,10 @@ foreach ($allPeaks as $p) {
                         <span>Örnek Gelişim Verisi Yükle (4 Hafta)</span>
                     </button>
                 </form>
+                <?php endif; ?>
                 <a href="/workout/live" class="px-4 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-500 text-white text-xs font-bold transition-all flex items-center gap-2 shadow-lg shadow-brand-600/30">
                     <i class="fa-solid fa-play text-xs"></i>
-                    <span>Canlı Antrenman</span>
+                    <span>CanlÄ± Antrenman</span>
                 </a>
             </div>
         </div>
@@ -88,7 +90,7 @@ foreach ($allPeaks as $p) {
         <div class="p-5 rounded-3xl bg-slate-900/90 border border-emerald-500/30 shadow-xl backdrop-blur-xl relative overflow-hidden group">
             <div class="absolute -right-6 -bottom-6 w-20 h-20 bg-emerald-500/10 rounded-full blur-xl pointer-events-none"></div>
             <div class="flex items-center justify-between mb-2">
-                <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400">En Yüksek Ağırlık Zirvesi</span>
+                <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400">En YÃ¼ksek AÄŸÄ±rlÄ±k Zirvesi</span>
                 <span class="w-7 h-7 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center text-xs">
                     <i class="fa-solid fa-trophy"></i>
                 </span>
@@ -97,7 +99,7 @@ foreach ($allPeaks as $p) {
                 <span class="text-3xl font-black font-display text-emerald-400"><?= number_format($metrics['peak_weight'], 1) ?></span>
                 <span class="text-sm font-bold text-slate-400">kg</span>
             </div>
-            <p class="text-[11px] text-slate-400 mt-1">Bu harekette çıkılan maksimum yük</p>
+            <p class="text-[11px] text-slate-400 mt-1">Bu harekette Ã§Ä±kÄ±lan maksimum yÃ¼k</p>
         </div>
 
         <!-- Metric 2: Estimated 1RM Peak -->
@@ -113,13 +115,13 @@ foreach ($allPeaks as $p) {
                 <span class="text-3xl font-black font-display text-indigo-300"><?= number_format($metrics['peak_1rm'], 1) ?></span>
                 <span class="text-sm font-bold text-slate-400">kg</span>
             </div>
-            <p class="text-[11px] text-slate-400 mt-1">Epley Formülü tek tekrar gücü</p>
+            <p class="text-[11px] text-slate-400 mt-1">Epley FormÃ¼lÃ¼ tek tekrar gÃ¼cÃ¼</p>
         </div>
 
         <!-- Metric 3: Progressive Overload Gain -->
         <div class="p-5 rounded-3xl bg-slate-900/90 border border-slate-800 shadow-xl backdrop-blur-xl relative overflow-hidden group">
             <div class="flex items-center justify-between mb-2">
-                <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Gelişim & Artış Oranı</span>
+                <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400">GeliÅŸim & ArtÄ±ÅŸ OranÄ±</span>
                 <span class="w-7 h-7 rounded-xl bg-brand-600/10 text-brand-400 flex items-center justify-center text-xs">
                     <i class="fa-solid fa-arrow-trend-up"></i>
                 </span>
@@ -130,16 +132,16 @@ foreach ($allPeaks as $p) {
                 </span>
                 <span class="text-sm font-bold text-slate-400">kg</span>
                 <span class="text-xs font-bold px-2 py-0.5 rounded-full <?= $metrics['progression_pct'] >= 0 ? 'bg-emerald-500/10 text-emerald-400' : 'bg-rose-500/10 text-rose-400' ?>">
-                    <?= ($metrics['progression_pct'] >= 0 ? '↑ +' : '↓ ') . $metrics['progression_pct'] ?>%
+                    <?= ($metrics['progression_pct'] >= 0 ? 'â†‘ +' : 'â†“ ') . $metrics['progression_pct'] ?>%
                 </span>
             </div>
-            <p class="text-[11px] text-slate-400 mt-1">İlk seans: <?= number_format($metrics['starting_weight'], 1) ?> kg</p>
+            <p class="text-[11px] text-slate-400 mt-1">Ä°lk seans: <?= number_format($metrics['starting_weight'], 1) ?> kg</p>
         </div>
 
         <!-- Metric 4: Total Volume & Sets -->
         <div class="p-5 rounded-3xl bg-slate-900/90 border border-slate-800 shadow-xl backdrop-blur-xl relative overflow-hidden group">
             <div class="flex items-center justify-between mb-2">
-                <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Kaldırılan Toplam Hacim</span>
+                <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400">KaldÄ±rÄ±lan Toplam Hacim</span>
                 <span class="w-7 h-7 rounded-xl bg-purple-500/10 text-purple-400 flex items-center justify-center text-xs">
                     <i class="fa-solid fa-layer-group"></i>
                 </span>
@@ -159,9 +161,9 @@ foreach ($allPeaks as $p) {
             <div>
                 <h2 class="text-sm font-bold uppercase tracking-wider text-white flex items-center gap-2">
                     <i class="fa-solid fa-dumbbell text-brand-400"></i>
-                    Analiz Edilecek Egzersizi Seçin
+                    Analiz Edilecek Egzersizi SeÃ§in
                 </h2>
-                <p class="text-xs text-slate-400 mt-0.5">Üzerine tıklayarak ilgili hareketin seans bazlı gelişim grafiğine ve set geçmişine geçiş yapın.</p>
+                <p class="text-xs text-slate-400 mt-0.5">Ãœzerine tÄ±klayarak ilgili hareketin seans bazlÄ± geliÅŸim grafiÄŸine ve set geÃ§miÅŸine geÃ§iÅŸ yapÄ±n.</p>
             </div>
             <span class="text-xs text-slate-500 font-bold">Toplam <?= count($exerciseList) ?> Egzersiz Takipte</span>
         </div>
@@ -181,7 +183,7 @@ foreach ($allPeaks as $p) {
                             <?= number_format((float)$exItem['max_weight_ever'], 1) ?> kg
                         </span>
                     <?php else: ?>
-                        <span class="text-[10px] text-slate-600">Henüz Veri Yok</span>
+                        <span class="text-[10px] text-slate-600">HenÃ¼z Veri Yok</span>
                     <?php endif; ?>
                 </a>
             <?php endforeach; ?>
@@ -191,13 +193,13 @@ foreach ($allPeaks as $p) {
     
     <!-- Muscle Fatigue Heatmap -->
     <div class="mb-6 p-6 rounded-3xl card-sporty relative overflow-hidden">
-        <h2 class="text-xl font-bold font-display text-gradient mb-4">Son 7 G�nl�k Kas Yorgunlu�u (Is� Haritas�)</h2>
-        <p class="text-sm text-slate-400 mb-6">Kas gruplar�n�z�n maruz kald��� i� hacmi (aktif set say�s�). �deal b�y�me i�in dinlenme ve y�klenme dengesine dikkat edin.</p>
+        <h2 class="text-xl font-bold font-display text-gradient mb-4">Son 7 Günlük Kas Yorgunluğu (Isı Haritası)</h2>
+        <p class="text-sm text-slate-400 mb-6">Kas gruplarınızın maruz kaldığı iş hacmi (aktif set sayısı). İdeal büyüme için dinlenme ve yüklenme dengesine dikkat edin.</p>
         <div class="flex overflow-x-auto snap-x snap-mandatory gap-4 pb-4 hide-scrollbar">
             <?php 
             $muscleNames = [
-                'chest' => 'G���s', 'back' => 'S�rt', 'legs' => 'Bacak', 
-                'shoulders' => 'Omuz', 'arms' => 'Kollar', 'core' => 'Kar�n'
+                'chest' => 'Göğüs', 'back' => 'Sırt', 'legs' => 'Bacak', 
+                'shoulders' => 'Omuz', 'arms' => 'Kollar', 'core' => 'Karın'
             ];
             foreach ($heatmap as $muscle => $sets): 
                 $percentage = min(100, ($sets / 15) * 100);
@@ -232,17 +234,17 @@ foreach ($allPeaks as $p) {
                 <div>
                     <div class="flex items-center gap-2 mb-1">
                         <span class="text-xs font-bold uppercase tracking-wider text-brand-400"><?= $activeExGroup ?></span>
-                        <span class="text-xs text-slate-500">•</span>
+                        <span class="text-xs text-slate-500">â€¢</span>
                         <span class="text-xs text-slate-400"><?= $activeExEquipment ?></span>
                     </div>
                     <h3 class="text-lg font-bold font-display text-white">
-                        <?= $activeExName ?> — Seans Bazlı Ağırlık & 1RM Gelişimi
+                        <?= $activeExName ?> â€” Seans BazlÄ± AÄŸÄ±rlÄ±k & 1RM GeliÅŸimi
                     </h3>
                 </div>
                 <div class="flex items-center gap-4 text-xs">
                     <div class="flex items-center gap-1.5">
                         <span class="w-3 h-3 rounded-full bg-emerald-400"></span>
-                        <span class="text-slate-300 font-semibold">Çıkılan Ağırlık (kg)</span>
+                        <span class="text-slate-300 font-semibold">Ã‡Ä±kÄ±lan AÄŸÄ±rlÄ±k (kg)</span>
                     </div>
                     <div class="flex items-center gap-1.5">
                         <span class="w-3 h-3 rounded-full bg-indigo-400"></span>
@@ -260,9 +262,9 @@ foreach ($allPeaks as $p) {
                         <div class="w-14 h-14 rounded-2xl bg-brand-600/10 border border-brand-500/20 text-brand-400 flex items-center justify-center text-2xl">
                             <i class="fa-solid fa-chart-line"></i>
                         </div>
-                        <h4 class="text-sm font-bold text-white">Bu Egzersiz İçin Henüz Kayıtlı Antrenman Yok</h4>
+                        <h4 class="text-sm font-bold text-white">Bu Egzersiz Ä°Ã§in HenÃ¼z KayÄ±tlÄ± Antrenman Yok</h4>
                         <p class="text-xs text-slate-400 max-w-sm">
-                            Bu egzersizi canlı antrenmanda uyguladığınızda veya yukarıdaki "Örnek Gelişim Verisi Yükle" butonuna tıkladığınızda ağırlık değişim eğrisi burada oluşacaktır.
+                            Bu egzersizi canlÄ± antrenmanda uyguladÄ±ÄŸÄ±nÄ±zda veya yukarÄ±daki "Ã–rnek GeliÅŸim Verisi YÃ¼kle" butonuna tÄ±kladÄ±ÄŸÄ±nÄ±zda aÄŸÄ±rlÄ±k deÄŸiÅŸim eÄŸrisi burada oluÅŸacaktÄ±r.
                         </p>
                     </div>
                 <?php endif; ?>
@@ -274,11 +276,11 @@ foreach ($allPeaks as $p) {
             <div>
                 <div class="flex items-center justify-between border-b border-slate-800 pb-4 mb-4">
                     <div>
-                        <span class="text-[10px] font-bold uppercase tracking-wider text-brand-400 block mb-0.5">Kıyaslama Analitiği</span>
-                        <h3 class="text-base font-bold font-display text-white">Hareket Hareket Zirve Ağırlıklar</h3>
+                        <span class="text-[10px] font-bold uppercase tracking-wider text-brand-400 block mb-0.5">KÄ±yaslama AnalitiÄŸi</span>
+                        <h3 class="text-base font-bold font-display text-white">Hareket Hareket Zirve AÄŸÄ±rlÄ±klar</h3>
                     </div>
                     <span class="text-xs font-bold text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-lg border border-emerald-500/20">
-                        Kaç kg'a Çıkıldı?
+                        KaÃ§ kg'a Ã‡Ä±kÄ±ldÄ±?
                     </span>
                 </div>
 
@@ -287,15 +289,15 @@ foreach ($allPeaks as $p) {
                         <canvas id="allPeaksComparisonChart"></canvas>
                     <?php else: ?>
                         <div class="h-full flex flex-col items-center justify-center text-center p-4 text-xs text-slate-500">
-                            Henüz tamamlanmış set bulunmuyor.
+                            HenÃ¼z tamamlanmÄ±ÅŸ set bulunmuyor.
                         </div>
                     <?php endif; ?>
                 </div>
             </div>
 
             <div class="pt-3 border-t border-slate-800/80 text-[11px] text-slate-400 flex items-center justify-between">
-                <span>Kas Grupları: Renk Kodlu</span>
-                <span class="font-bold text-indigo-300">NSCA Epley Normları</span>
+                <span>Kas GruplarÄ±: Renk Kodlu</span>
+                <span class="font-bold text-indigo-300">NSCA Epley NormlarÄ±</span>
             </div>
         </div>
 
@@ -307,12 +309,12 @@ foreach ($allPeaks as $p) {
             <div>
                 <h3 class="text-base font-bold font-display text-white flex items-center gap-2">
                     <i class="fa-solid fa-list-ol text-brand-400"></i>
-                    <?= $activeExName ?> — Detaylı Set ve Seans Kayıtları
+                    <?= $activeExName ?> â€” DetaylÄ± Set ve Seans KayÄ±tlarÄ±
                 </h3>
-                <p class="text-xs text-slate-400 mt-0.5">Her sette basılan kilo, tekrar, girilen RIR değeri ve hesaplanan 1RM zirveleri.</p>
+                <p class="text-xs text-slate-400 mt-0.5">Her sette basÄ±lan kilo, tekrar, girilen RIR deÄŸeri ve hesaplanan 1RM zirveleri.</p>
             </div>
             <span class="text-xs font-bold px-3 py-1 rounded-xl bg-slate-950 border border-slate-800 text-slate-300">
-                Toplam <?= count($detailedSets) ?> Set Kaydı
+                Toplam <?= count($detailedSets) ?> Set KaydÄ±
             </span>
         </div>
 
@@ -323,9 +325,9 @@ foreach ($allPeaks as $p) {
                         <tr class="border-b border-slate-800 text-slate-400 uppercase tracking-wider font-semibold">
                             <th class="py-3 px-4">Tarih</th>
                             <th class="py-3 px-4 text-center">Set No</th>
-                            <th class="py-3 px-4">Kaldırılan Ağırlık</th>
-                            <th class="py-3 px-4">Tekrar / Süre</th>
-                            <th class="py-3 px-4 text-center">RIR Değeri</th>
+                            <th class="py-3 px-4">KaldÄ±rÄ±lan AÄŸÄ±rlÄ±k</th>
+                            <th class="py-3 px-4">Tekrar / SÃ¼re</th>
+                            <th class="py-3 px-4 text-center">RIR DeÄŸeri</th>
                             <th class="py-3 px-4 text-right">Tahmini 1RM</th>
                             <th class="py-3 px-4 text-center">Durum / Rekor</th>
                         </tr>
@@ -352,11 +354,11 @@ foreach ($allPeaks as $p) {
                             <td class="py-3.5 px-4 text-center">
                                 <?php if ($set['rir_bucket'] === '0'): ?>
                                     <span class="px-2.5 py-1 rounded-full text-[10px] font-black bg-rose-500/10 text-rose-400 border border-rose-500/30">
-                                        RIR 0 (Tükeniş)
+                                        RIR 0 (TÃ¼keniÅŸ)
                                     </span>
                                 <?php elseif ($set['rir_bucket'] === '1-2'): ?>
                                     <span class="px-2.5 py-1 rounded-full text-[10px] font-black bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
-                                        RIR 1-2 (İdeal)
+                                        RIR 1-2 (Ä°deal)
                                     </span>
                                 <?php else: ?>
                                     <span class="px-2.5 py-1 rounded-full text-[10px] font-black bg-indigo-500/10 text-indigo-300 border border-indigo-500/30">
@@ -370,14 +372,14 @@ foreach ($allPeaks as $p) {
                             <td class="py-3.5 px-4 text-center">
                                 <?php if (!empty($set['is_pr'])): ?>
                                     <span class="px-2.5 py-1 rounded-full text-[10px] font-black bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 animate-pulse flex items-center gap-1 justify-center mx-auto w-fit">
-                                        <i class="fa-solid fa-crown text-[9px]"></i> ZİRVE PR
+                                        <i class="fa-solid fa-crown text-[9px]"></i> ZÄ°RVE PR
                                     </span>
                                 <?php elseif (!empty($set['form_breakdown'])): ?>
                                     <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20">
                                         Form Bozuldu
                                     </span>
                                 <?php else: ?>
-                                    <span class="text-[11px] text-slate-500">Nizami Form ✓</span>
+                                    <span class="text-[11px] text-slate-500">Nizami Form âœ“</span>
                                 <?php endif; ?>
                             </td>
                         </tr>
@@ -387,7 +389,7 @@ foreach ($allPeaks as $p) {
             </div>
         <?php else: ?>
             <div class="text-center py-10 text-slate-500 text-xs">
-                Bu egzersiz için henüz kaydedilmiş set bulunmamaktadır.
+                Bu egzersiz iÃ§in henÃ¼z kaydedilmiÅŸ set bulunmamaktadÄ±r.
             </div>
         <?php endif; ?>
     </div>
@@ -407,7 +409,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 labels: <?= json_encode($timelineLabels) ?>,
                 datasets: [
                     {
-                        label: 'Kaldırılan Maksimum Ağırlık (kg)',
+                        label: 'KaldÄ±rÄ±lan Maksimum AÄŸÄ±rlÄ±k (kg)',
                         data: <?= json_encode($timelineWeights) ?>,
                         borderColor: '#10b981',
                         backgroundColor: 'rgba(16, 185, 129, 0.12)',
@@ -491,7 +493,7 @@ document.addEventListener('DOMContentLoaded', function() {
             data: {
                 labels: <?= json_encode($peakLabels) ?>,
                 datasets: [{
-                    label: 'Çıkılan Zirve Ağırlık (kg)',
+                    label: 'Ã‡Ä±kÄ±lan Zirve AÄŸÄ±rlÄ±k (kg)',
                     data: <?= json_encode($peakWeights) ?>,
                     backgroundColor: <?= json_encode($peakColors) ?>,
                     borderRadius: 8,

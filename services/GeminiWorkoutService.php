@@ -32,7 +32,7 @@ class GeminiWorkoutService
     public function generateAiCoachSummary(int $userId, int $sessionId): string
     {
         $summaryData = $this->db->query("SELECT * FROM workout_sessions WHERE id = $sessionId AND user_id = $userId")->fetch();
-        if (!$summaryData) return "Antrenman verisi bulunamad�.";
+        if (!$summaryData) return "Antrenman verisi bulunamadı.";
         
         $logs = $this->db->query("
             SELECT e.name, wl.set_number, wl.actual_weight, wl.actual_reps, wl.rir_bucket, wl.form_breakdown 
@@ -42,19 +42,19 @@ class GeminiWorkoutService
             ORDER BY wl.created_at ASC
         ")->fetchAll();
         
-        if (empty($logs)) return "Kaydedilmi� set bulunamad�. Yapay zeka yorum yapam�yor.";
+        if (empty($logs)) return "Kaydedilmiş set bulunamadı. Yapay zeka yorum yapamıyor.";
         
-        $prompt = "Sen 'Ak�ll� Hipertrofi' uygulamas�n�n ac�mas�z ama motive edici sanal antren�r�s�n. Kullan�c� az �nce antrenman�n� bitirdi. A�a��da antrenman d�k�m� var:\n";
+        $prompt = "Sen 'Akıllı Hipertrofi' uygulamasının acımasız ama motive edici sanal antrenörüsün. Kullanıcı az önce antrenmanını bitirdi. Aşağıda antrenman dökümü var:\n";
         foreach ($logs as $l) {
-            $prompt .= "- {$l['name']} (Set {$l['set_number']}): {$l['actual_weight']}kg x {$l['actual_reps']} tekrar. Zorluk: {$l['rir_bucket']}. Form bozulmas�: ".($l['form_breakdown'] ? 'Evet' : 'Hay�r')."\n";
+            $prompt .= "- {$l['name']} (Set {$l['set_number']}): {$l['actual_weight']}kg x {$l['actual_reps']} tekrar. Zorluk: {$l['rir_bucket']}. Form bozulması: ".($l['form_breakdown'] ? 'Evet' : 'Hayır')."\n";
         }
-        $prompt .= "\nKullan�c�ya 3-4 c�mlelik k�sa, T�rk�e bir ko�luk �zeti ver. A��rl��� d��t��� veya formunu bozdu�u yerler varsa uyar, kolay buldu�u yerlerde bir dahakine daha �ok zorlamas�n� s�yle. Sadece do�rudan konu�ma metnini ver, merhaba vb. deme.";
+        $prompt .= "\nKullanıcıya 3-4 cümlelik kısa, Türkçe bir koçluk özeti ver. Ağırlığı düştüğü veya formunu bozduğu yerler varsa uyar, kolay bulduğu yerlerde bir dahakine daha çok zorlamasını söyle. Sadece doğrudan konuşma metnini ver, merhaba vb. deme.";
         
         $apiUrl = \App\Config\GeminiConfig::getApiUrl();
         $apiKey = \App\Config\GeminiConfig::getApiKey();
         
         if (!$apiKey || $apiKey === 'GEMINI_API_KEY_BURAYA') {
-            return "Ger�ek yapay zeka analizini g�rmek i�in l�tfen Gemini API anahtar�n�z� yap�land�r�n. (Sim�le edilmi� ko�luk: Bug�n fena de�ildin ama t�keni�e yeterince yakla�mam��s�n gibi duruyor. Sonraki idmanda daha cesur ol!)";
+            return "Gerçek yapay zeka analizini görmek için lütfen Gemini API anahtarınızı yapılandırın. (Simüle edilmiş koçluk: Bugün fena değildin ama tükenişe yeterince yaklaşmamışsın gibi duruyor. Sonraki idmanda daha cesur ol!)";
         }
         
         $payload = [
@@ -63,17 +63,107 @@ class GeminiWorkoutService
             ]
         ];
         
-        $ch = curl_init($apiUrl . '?key=' . $apiKey);
+        $ch = curl_init($apiUrl);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_POST, true);
         curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($payload));
-        curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, [
+            'Content-Type: application/json',
+            'x-goog-api-key: ' . $apiKey
+        ]);
         curl_setopt($ch, CURLOPT_TIMEOUT, 15);
         $response = curl_exec($ch);
         curl_close($ch);
         
         $data = json_decode($response, true);
-        return $data['candidates'][0]['content']['parts'][0]['text'] ?? "AI ko� �u an antrenman program� yap�yor, ula�amad�k. Sonraki idmanda g�r���r�z!";
+        return $data['candidates'][0]['content']['parts'][0]['text'] ?? "AI koç şu an antrenman programı yapıyor, ulaşamadık. Sonraki idmanda görüşürüz!";
+    }
+
+    /**
+     * Handle multi-turn chat for live workout coaching
+     * Returns JSON structure with 'response' (text) and optionally 'action' (rir adjustment, weight drop)
+     */
+    public function dynamicCoachChat(int $userId, int $sessionId, ?string $currentExercise, array $history, string $newMessage): array
+    {
+        $apiUrl = \App\Config\GeminiConfig::getApiUrl();
+        $apiKey = \App\Config\GeminiConfig::getApiKey();
+        
+        if (!$apiKey || $apiKey === 'GEMINI_API_KEY_BURAYA') {
+            return [
+                'response' => "Simüle edilmiş yanıt: API anahtarı eksik. 'Çok zorlandım' dediğini varsayarak ağırlığı %10 düşürmeni öneriyorum.",
+                'action' => ['type' => 'decrease_weight', 'amount_percent' => 10]
+            ];
+        }
+
+        // Construct multi-turn contents
+        $contents = [];
+        
+        // Add a system prompt as the first instruction (or pass it properly)
+        $systemInstruction = "Sen 'Akıllı Hipertrofi' uygulamasının Dinamik Seans Koçusun. "
+            . "Kullanıcı şu anda antrenman yapıyor" . ($currentExercise ? " (Egzersiz: $currentExercise)" : "") . ". "
+            . "Sana şikayet veya durum bildirecek (Örn: 'Çok zorlandım', 'Formum bozuldu'). "
+            . "Buna göre Türkçe, kısa, motive edici bir yanıt ver ve eğer gerekiyorsa RIR düşürme veya ağırlık azaltma kararı al.\n"
+            . "ÇIKTIYI SADECE AŞAĞIDAKİ GİBİ JSON FORMATINDA VER (Başka hiçbir açıklama yazma):\n"
+            . "{\n"
+            . "  \"response\": \"Koçun kullanıcıya söyleyeceği metin\",\n"
+            . "  \"action\": { \"type\": \"decrease_weight|increase_rir|none\", \"value\": 10 }\n"
+            . "}";
+
+        // Add history correctly using role: user / role: model
+        if (!empty($history)) {
+            foreach ($history as $msg) {
+                // Ensure only allowed roles are used
+                $role = ($msg['role'] === 'model') ? 'model' : 'user';
+                $text = $msg['parts'][0]['text'] ?? '';
+                $contents[] = [
+                    'role' => $role,
+                    'parts' => [['text' => $text]]
+                ];
+            }
+        }
+        
+        $contents[] = [
+            'role' => 'user',
+            'parts' => [['text' => $newMessage]]
+        ];
+
+        $payload = [
+            'system_instruction' => [
+                'parts' => [['text' => $systemInstruction]]
+            ],
+            'contents' => $contents,
+            'generationConfig' => [
+                'temperature' => 0.4,
+                'response_mime_type' => 'application/json'
+            ]
+        ];
+
+        $ch = curl_init($apiUrl);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_POST, true);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($payload));
+        curl_setopt($ch, CURLOPT_HTTPHEADER, [
+            'Content-Type: application/json',
+            'x-goog-api-key: ' . $apiKey
+        ]);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 15);
+        $response = curl_exec($ch);
+        curl_close($ch);
+        
+        $data = json_decode($response, true);
+        $candidateText = $data['candidates'][0]['content']['parts'][0]['text'] ?? null;
+        
+        if ($candidateText) {
+            $parsed = json_decode(trim($candidateText), true);
+            if (is_array($parsed) && isset($parsed['response'])) {
+                return $parsed;
+            }
+        }
+        
+        return [
+            'response' => "Anlaşıldı. Yükü veya tekrarı kendine göre ayarla, sakatlıktan kaçın.",
+            'action' => ['type' => 'none']
+        ];
     }
 
     /**
@@ -118,12 +208,14 @@ class GeminiWorkoutService
     }
 
     /**
-     * Call Gemini API with strict 5.0 seconds cURL timeout
+     * Call Gemini API with strict 5.0 seconds cURL timeout and Tool Calling support
      */
     private function callGeminiApi(int $userId, string $fitnessLevel, string $programType, array $availableExercises): ?array
     {
         $apiUrl = GeminiConfig::getApiUrl();
         $timeout = GeminiConfig::getTimeoutSeconds();
+        
+        $injuryFilter = new InjuryFilterService($this->db);
 
         // Prepare compact catalog of allowed exercises
         $catalog = array_map(function($e) {
@@ -138,6 +230,7 @@ class GeminiWorkoutService
         $prompt = "You are a world-class biomechanics hypertrophy coach. Generate a weekly workout program for a user with fitness level: '{$fitnessLevel}' and program type: '{$programType}'.\n"
             . "CRITICAL RULE: You MUST ONLY select exercises from the following JSON catalog. Do NOT make up new exercise names or IDs.\n"
             . "Catalog: " . json_encode($catalog, JSON_UNESCAPED_UNICODE) . "\n\n"
+            . "Use the provided tools to check the user's equipment and injury profile to ensure the program is perfectly tailored and safe.\n"
             . "Output format MUST BE STRICT VALID JSON ONLY (no markdown fences, no explanatory text):\n"
             . "{\n"
             . "  \"days\": [\n"
@@ -151,61 +244,194 @@ class GeminiWorkoutService
             . "  ]\n"
             . "}";
 
-        $payload = [
-            'contents' => [
-                [
-                    'parts' => [
-                        ['text' => $prompt]
-                    ]
+        $contents = [
+            [
+                'role' => 'user',
+                'parts' => [
+                    ['text' => $prompt]
                 ]
-            ],
-            'generationConfig' => [
-                'temperature'       => 0.2,
-                'response_mime_type'=> 'application/json'
             ]
         ];
 
-        $ch = curl_init($apiUrl);
-        curl_setopt_array($ch, [
-            CURLOPT_POST           => true,
-            CURLOPT_POSTFIELDS     => json_encode($payload),
-            CURLOPT_HTTPHEADER     => ['Content-Type: application/json'],
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_TIMEOUT        => (int)ceil($timeout),
-            CURLOPT_CONNECTTIMEOUT => 3,
-            CURLOPT_SSL_VERIFYPEER => true
-        ]);
+        $tools = [
+            [
+                'functionDeclarations' => [
+                    [
+                        'name' => 'get_user_equipment',
+                        'description' => "Get the available equipment for the user.",
+                        'parameters' => [
+                            'type' => 'OBJECT',
+                            'properties' => [
+                                'user_id' => [
+                                    'type' => 'INTEGER',
+                                    'description' => 'The user ID'
+                                ]
+                            ],
+                            'required' => ['user_id']
+                        ]
+                    ],
+                    [
+                        'name' => 'get_injury_profile',
+                        'description' => "Get the user's active injured joint areas to avoid certain exercises.",
+                        'parameters' => [
+                            'type' => 'OBJECT',
+                            'properties' => [
+                                'user_id' => [
+                                    'type' => 'INTEGER',
+                                    'description' => 'The user ID'
+                                ]
+                            ],
+                            'required' => ['user_id']
+                        ]
+                    ]
+                ]
+            ]
+        ];
 
-        $response = curl_exec($ch);
-        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        $error = curl_error($ch);
-        curl_close($ch);
+        $generationConfig = [
+            'temperature'       => 0.2,
+            'response_mime_type'=> 'application/json',
+            'response_schema'   => [
+                'type'       => 'OBJECT',
+                'properties' => [
+                    'days' => [
+                        'type'  => 'ARRAY',
+                        'items' => [
+                            'type'       => 'OBJECT',
+                            'properties' => [
+                                'day_of_week' => ['type' => 'INTEGER'],
+                                'focus_area'  => ['type' => 'STRING'],
+                                'exercises'   => [
+                                    'type'  => 'ARRAY',
+                                    'items' => [
+                                        'type'       => 'OBJECT',
+                                        'properties' => [
+                                            'exercise_id'      => ['type' => 'INTEGER'],
+                                            'order_in_session' => ['type' => 'INTEGER'],
+                                            'target_sets'      => ['type' => 'INTEGER'],
+                                            'target_reps_min'  => ['type' => 'INTEGER'],
+                                            'target_reps_max'  => ['type' => 'INTEGER']
+                                        ],
+                                        'required' => ['exercise_id', 'order_in_session', 'target_sets', 'target_reps_min', 'target_reps_max']
+                                    ]
+                                ]
+                            ],
+                            'required' => ['day_of_week', 'focus_area', 'exercises']
+                        ]
+                    ]
+                ],
+                'required' => ['days']
+            ]
+        ];
 
-        if ($error || $httpCode !== 200 || empty($response)) {
-            error_log("Gemini API Error (HTTP {$httpCode}): " . $error);
-            return null;
+        $maxIterations = 3;
+        for ($i = 0; $i < $maxIterations; $i++) {
+            $payload = [
+                'contents' => $contents,
+                'tools' => $tools,
+                'generationConfig' => $generationConfig
+            ];
+
+            $ch = curl_init($apiUrl);
+            curl_setopt_array($ch, [
+                CURLOPT_POST           => true,
+                CURLOPT_POSTFIELDS     => json_encode($payload),
+                CURLOPT_HTTPHEADER     => [
+                    'Content-Type: application/json',
+                    'x-goog-api-key: ' . GeminiConfig::getApiKey()
+                ],
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_TIMEOUT        => (int)ceil($timeout),
+                CURLOPT_CONNECTTIMEOUT => 3,
+                CURLOPT_SSL_VERIFYPEER => true
+            ]);
+
+            $response = curl_exec($ch);
+            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            $error = curl_error($ch);
+            curl_close($ch);
+
+            if ($error || $httpCode !== 200 || empty($response)) {
+                error_log("Gemini API Error (HTTP {$httpCode}): " . $error);
+                return null;
+            }
+
+            $decoded = json_decode($response, true);
+            $candidate = $decoded['candidates'][0] ?? null;
+            if (!$candidate) {
+                return null;
+            }
+
+            $parts = $candidate['content']['parts'] ?? [];
+            if (empty($parts)) {
+                return null;
+            }
+
+            $functionCalls = [];
+            foreach ($parts as $part) {
+                if (isset($part['functionCall'])) {
+                    $functionCalls[] = $part['functionCall'];
+                }
+            }
+
+            if (!empty($functionCalls)) {
+                $contents[] = $candidate['content'];
+                
+                $functionResponses = [];
+                foreach ($functionCalls as $fnCall) {
+                    $fnName = $fnCall['name'];
+                    $fnArgs = $fnCall['args'] ?? [];
+                    $fnResult = [];
+                    
+                    if ($fnName === 'get_user_equipment') {
+                        $uid = $fnArgs['user_id'] ?? $userId;
+                        $fnResult = $this->equipmentModel->getByUserId((int)$uid) ?: [];
+                    } elseif ($fnName === 'get_injury_profile') {
+                        $uid = $fnArgs['user_id'] ?? $userId;
+                        $fnResult = $injuryFilter->getActiveInjuredJoints((int)$uid);
+                    }
+                    
+                    $functionResponses[] = [
+                        'functionResponse' => [
+                            'name' => $fnName,
+                            'response' => [
+                                'name' => $fnName,
+                                'content' => $fnResult
+                            ]
+                        ]
+                    ];
+                }
+                
+                $contents[] = [
+                    'role' => 'function',
+                    'parts' => $functionResponses
+                ];
+                
+                continue; // Loop again with function response
+            }
+
+            // Clean any markdown formatting if present
+            $candidateText = $parts[0]['text'] ?? null;
+            if (!$candidateText) {
+                return null;
+            }
+
+            $cleanJson = trim($candidateText);
+            if (str_starts_with($cleanJson, '```json')) {
+                $cleanJson = substr($cleanJson, 7);
+            }
+            if (str_starts_with($cleanJson, '```')) {
+                $cleanJson = substr($cleanJson, 3);
+            }
+            if (str_ends_with($cleanJson, '```')) {
+                $cleanJson = substr($cleanJson, 0, -3);
+            }
+
+            $parsedProgram = json_decode(trim($cleanJson), true);
+            return is_array($parsedProgram) ? $parsedProgram : null;
         }
 
-        $decoded = json_decode($response, true);
-        $candidateText = $decoded['candidates'][0]['content']['parts'][0]['text'] ?? null;
-        if (!$candidateText) {
-            return null;
-        }
-
-        // Clean any markdown formatting if present
-        $cleanJson = trim($candidateText);
-        if (str_starts_with($cleanJson, '```json')) {
-            $cleanJson = substr($cleanJson, 7);
-        }
-        if (str_starts_with($cleanJson, '```')) {
-            $cleanJson = substr($cleanJson, 3);
-        }
-        if (str_ends_with($cleanJson, '```')) {
-            $cleanJson = substr($cleanJson, 0, -3);
-        }
-
-        $parsedProgram = json_decode(trim($cleanJson), true);
-        return is_array($parsedProgram) ? $parsedProgram : null;
+        return null;
     }
 
     /**
@@ -249,7 +475,7 @@ class GeminiWorkoutService
                 'days' => [
                     [
                         'day_of_week' => 1,
-                        'focus_area'  => 'Üst Vücut A',
+                        'focus_area'  => 'Ãœst VÃ¼cut A',
                         'exercises'   => [
                             ['exercise_id' => $pick('push_horizontal', 4), 'order_in_session' => 1, 'target_sets' => 3, 'target_reps_min' => 8, 'target_reps_max' => 12],
                             ['exercise_id' => $pick('pull_horizontal', 20), 'order_in_session' => 2, 'target_sets' => 3, 'target_reps_min' => 8, 'target_reps_max' => 12],
@@ -259,7 +485,7 @@ class GeminiWorkoutService
                     ],
                     [
                         'day_of_week' => 2,
-                        'focus_area'  => 'Alt Vücut A',
+                        'focus_area'  => 'Alt VÃ¼cut A',
                         'exercises'   => [
                             ['exercise_id' => $pick('squat', 30), 'order_in_session' => 1, 'target_sets' => 3, 'target_reps_min' => 8, 'target_reps_max' => 12],
                             ['exercise_id' => $pick('hinge', 38), 'order_in_session' => 2, 'target_sets' => 3, 'target_reps_min' => 8, 'target_reps_max' => 12],
@@ -268,7 +494,7 @@ class GeminiWorkoutService
                     ],
                     [
                         'day_of_week' => 4,
-                        'focus_area'  => 'Üst Vücut B',
+                        'focus_area'  => 'Ãœst VÃ¼cut B',
                         'exercises'   => [
                             ['exercise_id' => $pick('pull_vertical', 26), 'order_in_session' => 1, 'target_sets' => 3, 'target_reps_min' => 6, 'target_reps_max' => 10],
                             ['exercise_id' => $pick('push_horizontal', 8), 'order_in_session' => 2, 'target_sets' => 3, 'target_reps_min' => 8, 'target_reps_max' => 12],
@@ -278,7 +504,7 @@ class GeminiWorkoutService
                     ],
                     [
                         'day_of_week' => 5,
-                        'focus_area'  => 'Alt Vücut B',
+                        'focus_area'  => 'Alt VÃ¼cut B',
                         'exercises'   => [
                             ['exercise_id' => $pick('squat', 31), 'order_in_session' => 1, 'target_sets' => 3, 'target_reps_min' => 10, 'target_reps_max' => 15],
                             ['exercise_id' => $pick('hinge', 36), 'order_in_session' => 2, 'target_sets' => 3, 'target_reps_min' => 12, 'target_reps_max' => 15],
@@ -294,7 +520,7 @@ class GeminiWorkoutService
             'days' => [
                 [
                     'day_of_week' => 1,
-                    'focus_area'  => 'Tüm Vücut (Pazartesi)',
+                    'focus_area'  => 'TÃ¼m VÃ¼cut (Pazartesi)',
                     'exercises'   => [
                         ['exercise_id' => $pick('squat', 30), 'order_in_session' => 1, 'target_sets' => 3, 'target_reps_min' => 8, 'target_reps_max' => 12],
                         ['exercise_id' => $pick('push_horizontal', 4), 'order_in_session' => 2, 'target_sets' => 3, 'target_reps_min' => 8, 'target_reps_max' => 12],
@@ -304,7 +530,7 @@ class GeminiWorkoutService
                 ],
                 [
                     'day_of_week' => 3,
-                    'focus_area'  => 'Tüm Vücut (Çarşamba)',
+                    'focus_area'  => 'TÃ¼m VÃ¼cut (Ã‡arÅŸamba)',
                     'exercises'   => [
                         ['exercise_id' => $pick('hinge', 38), 'order_in_session' => 1, 'target_sets' => 3, 'target_reps_min' => 8, 'target_reps_max' => 12],
                         ['exercise_id' => $pick('push_vertical', 14), 'order_in_session' => 2, 'target_sets' => 3, 'target_reps_min' => 8, 'target_reps_max' => 12],
@@ -314,7 +540,7 @@ class GeminiWorkoutService
                 ],
                 [
                     'day_of_week' => 5,
-                    'focus_area'  => 'Tüm Vücut (Cuma)',
+                    'focus_area'  => 'TÃ¼m VÃ¼cut (Cuma)',
                     'exercises'   => [
                         ['exercise_id' => $pick('squat', 31), 'order_in_session' => 1, 'target_sets' => 3, 'target_reps_min' => 10, 'target_reps_max' => 15],
                         ['exercise_id' => $pick('push_horizontal', 8), 'order_in_session' => 2, 'target_sets' => 3, 'target_reps_min' => 8, 'target_reps_max' => 12],

@@ -104,21 +104,6 @@ class AnalyticsController extends Controller
         ]);
     }
 
-    public function seedSampleData(): void
-    {
-        $currentUser = $this->requireAuth();
-        Security::verifyRequestCsrf();
-        $userId = (int)$currentUser['id'];
-
-        try {
-            $this->analyticsService->seedRealisticOverloadHistory($userId);
-            $this->setFlash('success', '🎯 4 haftalık aşamalı aşırı yüklenme (progressive overload) antrenman verisi başarıyla hesabınıza tanımlandı! Grafikleriniz aşağıda güncellendi.');
-        } catch (\Throwable $e) {
-            $this->setFlash('danger', 'Demo veri eklenirken hata oluştu: ' . $e->getMessage());
-        }
-
-        $this->redirect('/analytics');
-    }
 
     public function apiProgress(): void
     {
