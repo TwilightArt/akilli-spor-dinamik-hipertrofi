@@ -26,6 +26,8 @@ AddDefaultCharset UTF-8
     RewriteRule ^database/ - [F,L]
     RewriteRule ^cron/ - [F,L]
     RewriteRule ^\.env.* - [F,L]
+    # PWA manifest must stay public (otherwise "Add to Home Screen" breaks); all other .json stays blocked
+    RewriteRule ^manifest\.json$ - [L]
     RewriteRule \.(sql|md|log|ini|json|lock)$ - [F,L]
 
     # 3. Clean URLs: Route all requests through index.php if file/dir does not exist
