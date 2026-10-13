@@ -35,6 +35,7 @@ CREATE TABLE `users` (
   `gender` ENUM('male', 'female') NOT NULL,
   `birth_date` DATE NOT NULL,
   `height_cm` DECIMAL(5,2) NOT NULL,
+  `current_weight_kg` DECIMAL(5,2) DEFAULT 75.00,
   `fitness_level` ENUM('absolute_beginner','beginner','intermediate','advanced') DEFAULT 'beginner',
   `pushups_count` INT DEFAULT 0,
   `chinups_count` INT DEFAULT 0,
