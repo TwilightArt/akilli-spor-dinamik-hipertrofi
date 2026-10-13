@@ -37,11 +37,11 @@ jobs:
     - name: Start PHP Built-in Server
       run: |
         # Start server in the background
-        php -S 127.0.0.1:8088 -t public > server.log 2>&1 &
+        php -S 127.0.0.1:8088 > server.log 2>&1 &
         # Wait a moment for the server to initialize
         sleep 2
         # Check if server is running
-        curl -s http://127.0.0.1:8088/index.html > /dev/null || (echo "Server failed to start. Logs:" && cat server.log && exit 1)
+        curl -s http://127.0.0.1:8088/ > /dev/null || (echo "Server failed to start. Logs:" && cat server.log && exit 1)
 
     - name: Run FAZ 1 API Unit/Integration Tests
       run: php tests/test_api_faz1.php
