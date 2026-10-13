@@ -122,6 +122,7 @@ $router->get('/weigh-in', [WeighInController::class, 'index'], ['auth']);
 $router->post('/weigh-in', [WeighInController::class, 'save'], ['auth']);
 
 $router->get('/analytics', [AnalyticsController::class, 'index'], ['auth']);
+$router->post('/analytics/sample_data', [AnalyticsController::class, 'sampleData'], ['auth']);
 $router->get('/workout/progress', [AnalyticsController::class, 'index'], ['auth']);
 
 

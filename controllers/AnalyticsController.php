@@ -105,6 +105,23 @@ class AnalyticsController extends Controller
     }
 
 
+    public function sampleData(): void
+    {
+        $currentUser = $this->requireAuth();
+
+        Security::verifyRequestCsrf();
+
+        if (!Security::isLocalEnv()) {
+            $this->setFlash('error', 'Bu işlem yalnızca yerel ortamda çalıştırılabilir.');
+            $this->redirect('/analytics');
+            return;
+        }
+
+        $this->analyticsService->seedRealisticOverloadHistory((int)$currentUser['id']);
+        $this->setFlash('success', '4 haftalık örnek gelişim verisi başarıyla eklendi.');
+        $this->redirect('/analytics');
+    }
+
     public function apiProgress(): void
     {
         $currentUser = $this->requireAuth();
