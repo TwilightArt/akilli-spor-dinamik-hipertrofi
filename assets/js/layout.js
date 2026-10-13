@@ -1,6 +1,6 @@
-﻿/**
+/**
  * ============================================================================
- * AkÄ±llÄ± Spor & Dinamik Hipertrofi Platformu (v2.1)
+ * Akıllı Spor & Dinamik Hipertrofi Platformu (v2.1)
  * Shared Layout & Mobile Navigation Bar Component (assets/js/layout.js)
  * Automatically injects header & mobile bottom bar into HTML pages
  * ============================================================================
@@ -147,7 +147,7 @@
             if (btnLogout) {
                 btnLogout.addEventListener('click', (e) => {
                     e.preventDefault();
-                    if (confirm('Oturumunuz kapatÄ±lacak. Emin misiniz?')) {
+                    if (confirm('Oturumunuz kapatılacak. Emin misiniz?')) {
                         if (window.API && window.API.auth) {
                             window.API.auth.logout();
                         } else {
@@ -257,13 +257,13 @@
         setupOfflineListener() {
             window.addEventListener('offline', () => {
                 if (window.API && window.API.toast) {
-                    window.API.toast('Ä°nternet baÄŸlantÄ±sÄ± kesildi. Ã‡evrimdÄ±ÅŸÄ± Ã¶nbellek devrede.', 'warning', 5000);
+                    window.API.toast('İnternet bağlantısı kesildi. Çevrimdışı önbellek devrede.', 'warning', 5000);
                 }
             });
 
             window.addEventListener('online', () => {
                 if (window.API && window.API.toast) {
-                    window.API.toast('Yeniden Ã§evrimiÃ§isiniz! Veriler senkronize ediliyor.', 'success', 3000);
+                    window.API.toast('Yeniden çevrimiçisiniz! Veriler senkronize ediliyor.', 'success', 3000);
                 }
             });
         },

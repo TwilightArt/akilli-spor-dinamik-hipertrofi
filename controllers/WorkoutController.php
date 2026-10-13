@@ -125,7 +125,7 @@ class WorkoutController extends Controller
         $recentWorkouts = $stmtPast->fetchAll();
 
         $this->render('workout/dashboard', [
-            'pageTitle'      => 'Sporcu & MÃ¼ÅŸteri Paneli â€” AkÄ±llÄ± Hipertrofi',
+            'pageTitle'      => 'Sporcu & Müşteri Paneli — Akıllı Hipertrofi',
             'user'           => $user,
             'program'        => $program,
             'programDays'    => $programDays,
@@ -301,7 +301,7 @@ class WorkoutController extends Controller
                 $lastEngineResult = $engineRec;
             } else {
                 $initialWeight = $barWeight > 0.0 ? $barWeight : 0.0;
-                $plateRecipe = "VÃ¼cut AÄŸÄ±rlÄ±ÄŸÄ± / Standart Ekipman";
+                $plateRecipe = "Vücut Ağırlığı / Standart Ekipman";
                 if ($barWeight > 0.0 && !empty($plates)) {
                     $solved = $this->plateSolver->solve($initialWeight, $isBarbell, $plates, $barWeight);
                     $plateRecipe = $solved['recipe'];
@@ -317,7 +317,7 @@ class WorkoutController extends Controller
         unset($ex);
 
         $this->render('workout/live_session', [
-            'pageTitle'      => 'CanlÄ± Antrenman Oturumu â€” AkÄ±llÄ± Hipertrofi',
+            'pageTitle'      => 'Canlı Antrenman Oturumu — Akıllı Hipertrofi',
             'user'           => $user,
             'session'        => $activeSession,
             'dayInfo'        => $dayInfo,
