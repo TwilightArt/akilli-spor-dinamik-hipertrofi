@@ -37,7 +37,7 @@ jobs:
     - name: Start PHP Built-in Server
       run: |
         # Start server in the background
-        php -S 127.0.0.1:8088 > server.log 2>&1 &
+        php -S 127.0.0.1:8088 -t public > server.log 2>&1 &
         # Wait a moment for the server to initialize
         sleep 2
         # Check if server is running
