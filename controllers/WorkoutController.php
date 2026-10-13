@@ -103,7 +103,11 @@ class WorkoutController extends Controller
 
         // Calculate RFI Baselines
         $rfiService = new \App\Services\RfiService();
-        $baselines = $rfiService->calculateBaselineLoads($latestWeight, 12, 5, 20, 45);
+        $pushups = (int)($user['pushups_count'] ?? 12);
+        $chinups = (int)($user['chinups_count'] ?? 5);
+        $squats = (int)($user['squats_count'] ?? 20);
+        $plankSec = (int)($user['plank_seconds'] ?? 45);
+        $baselines = $rfiService->calculateBaselineLoads($latestWeight, $pushups, $chinups, $squats, $plankSec);
 
         // User active injuries
         $activeInjuries = $this->injuryFilter->getActiveInjuredJoints($userId);
