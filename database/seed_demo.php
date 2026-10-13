@@ -31,7 +31,7 @@ if (!$existing) {
         '0.5kg'  => 2
     ], 'home_weights');
     $gem = new GeminiWorkoutService();
-    $gem->generateWeeklyProgram($uid, 75.0, 'intermediate', true);
+    $gem->generateWeeklyProgram($uid, 'intermediate', true);
     echo "SUCCESS: Demo user created! Email: {$email} | Password: {$password}\n";
 } else {
     echo "Demo user already exists: {$email}\n";
