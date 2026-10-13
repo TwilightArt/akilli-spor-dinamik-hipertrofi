@@ -87,7 +87,7 @@ final class Constants
     // Hypertrophy Engine Rules & Safety Thresholds
     // =========================================================================
     // Single set increase combined ceiling: min(actual_weight * 0.10, 2.50 kg)
-    public const MAX_SINGLE_SET_KG = 5.00;
+    public const MAX_SINGLE_SET_KG = 2.50;
     public const MAX_SINGLE_SET_PCT = 0.10;
 
     // Session-wide cumulative safety ceiling: Max 3 increases and +20% over first set
