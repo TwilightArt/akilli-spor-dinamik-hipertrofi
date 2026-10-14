@@ -1,6 +1,7 @@
 <?php require_once __DIR__ . '/../layouts/header.php'; ?>
 
-<div class="max-w-3xl mx-auto" x-data="calculator1RM()">
+<div class="max-w-4xl mx-auto space-y-6" x-data="calculator1RM()">
+    <?php $activeTab = '1rm'; require __DIR__ . '/_tabs.php'; ?>
     <!-- Header -->
     <div class="mb-6 flex items-center justify-between">
         <div>

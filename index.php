@@ -135,6 +135,10 @@ $router->post('/profile/password', [ProfileController::class, 'updatePassword'],
 
 $router->get('/calculators/1rm', [CalculatorController::class, 'index'], ['auth']);
 $router->get('/calculators/tdee', [CalculatorController::class, 'tdee'], ['auth']);
+$router->get('/calculators/water', [CalculatorController::class, 'water'], ['auth']);
+$router->get('/calculators/rpe', [CalculatorController::class, 'rpe'], ['auth']);
+$router->get('/tools/hiit', [CalculatorController::class, 'hiit'], ['auth']);
+$router->get('/workout/exercises', [WorkoutController::class, 'exercisesLibrary'], ['auth']);
 
 // ============================================================================
 // RESTFUL JSON API ENDPOINTS (FAZ 1 - Modern Mobile/SPA Backend)
@@ -152,6 +156,7 @@ $router->get('/api/auth/me', [ApiController::class, 'me']);
 $router->get('/api/workout/dashboard', [ApiController::class, 'workoutDashboard'], ['api_auth']);
 $router->get('/api/workout/live', [ApiController::class, 'workoutLive'], ['api_auth']);
 $router->get('/api/workout/live/{id}', [ApiController::class, 'workoutLive'], ['api_auth']);
+$router->get('/api/workout/exercises', [ApiController::class, 'exercisesLibrary'], ['api_auth']);
 $router->post('/api/workout/log-set', [ApiController::class, 'logSet'], ['api_auth']);
 $router->post('/api/workout/log_set', [ApiController::class, 'logSet'], ['api_auth']);
 $router->post('/api/workout/end', [ApiController::class, 'workoutEnd'], ['api_auth']);
@@ -176,6 +181,8 @@ $router->get('/api/calculators/1rm', [ApiController::class, 'calculator1rm']);
 $router->post('/api/calculators/1rm', [ApiController::class, 'calculator1rm']);
 $router->get('/api/calculators/tdee', [ApiController::class, 'calculatorTdee']);
 $router->post('/api/calculators/tdee', [ApiController::class, 'calculatorTdee']);
+$router->get('/api/calculators/water', [ApiController::class, 'calculatorWater']);
+$router->post('/api/calculators/water', [ApiController::class, 'calculatorWater']);
 
 // 6. Onboarding API
 $router->get('/api/onboarding/assessment', [ApiController::class, 'getAssessment'], ['api_auth']);

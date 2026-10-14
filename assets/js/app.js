@@ -2,12 +2,32 @@
  * Akıllı Hipertrofi Platform Client Audio & Haptic Helper
  */
 window.HipertrofiApp = {
+    audioEnabled: localStorage.getItem('hipertrofi_sound_enabled') !== 'false',
+
+    toggleSound: function() {
+        this.audioEnabled = !this.audioEnabled;
+        localStorage.setItem('hipertrofi_sound_enabled', this.audioEnabled ? 'true' : 'false');
+        return this.audioEnabled;
+    },
+
+    getAudioContext: function() {
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        if (!AudioContext) return null;
+        if (!this._audioCtx) {
+            this._audioCtx = new AudioContext();
+        }
+        if (this._audioCtx.state === 'suspended') {
+            this._audioCtx.resume();
+        }
+        return this._audioCtx;
+    },
+
     // Web Audio Synthesizer Beep (Zero external mp3 asset dependency)
     playTimerChime: function() {
+        if (!this.audioEnabled) return;
         try {
-            const AudioContext = window.AudioContext || window.webkitAudioContext;
-            if (!AudioContext) return;
-            const ctx = new AudioContext();
+            const ctx = this.getAudioContext();
+            if (!ctx) return;
             const osc = ctx.createOscillator();
             const gain = ctx.createGain();
 
@@ -15,7 +35,7 @@ window.HipertrofiApp = {
             osc.frequency.setValueAtTime(587.33, ctx.currentTime); // D5
             osc.frequency.setValueAtTime(880, ctx.currentTime + 0.15); // A5
 
-            gain.gain.setValueAtTime(0.1, ctx.currentTime);
+            gain.gain.setValueAtTime(0.12, ctx.currentTime);
             gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.4);
 
             osc.connect(gain);
@@ -24,7 +44,112 @@ window.HipertrofiApp = {
             osc.start();
             osc.stop(ctx.currentTime + 0.4);
         } catch (e) {
-            console.log('Audio chime not supported or muted');
+            console.log('Audio chime error:', e);
+        }
+    },
+
+    // Short countdown warning tick (3, 2, 1)
+    playCountdownTick: function() {
+        if (!this.audioEnabled) return;
+        try {
+            const ctx = this.getAudioContext();
+            if (!ctx) return;
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(440, ctx.currentTime); // A4
+            gain.gain.setValueAtTime(0.15, ctx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.09);
+
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+
+            osc.start();
+            osc.stop(ctx.currentTime + 0.09);
+        } catch (e) {
+            console.log('Audio tick error:', e);
+        }
+    },
+
+    // High energetic beep for Work interval start
+    playWorkStart: function() {
+        if (!this.audioEnabled) return;
+        try {
+            const ctx = this.getAudioContext();
+            if (!ctx) return;
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(880, ctx.currentTime); // A5
+            osc.frequency.exponentialRampToValueAtTime(1320, ctx.currentTime + 0.22); // E6
+
+            gain.gain.setValueAtTime(0.2, ctx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3);
+
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+
+            osc.start();
+            osc.stop(ctx.currentTime + 0.3);
+        } catch (e) {
+            console.log('Audio work error:', e);
+        }
+    },
+
+    // Calmer descending tone for Rest interval start
+    playRestStart: function() {
+        if (!this.audioEnabled) return;
+        try {
+            const ctx = this.getAudioContext();
+            if (!ctx) return;
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(523.25, ctx.currentTime); // C5
+            osc.frequency.exponentialRampToValueAtTime(349.23, ctx.currentTime + 0.25); // F4
+
+            gain.gain.setValueAtTime(0.18, ctx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.35);
+
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+
+            osc.start();
+            osc.stop(ctx.currentTime + 0.35);
+        } catch (e) {
+            console.log('Audio rest error:', e);
+        }
+    },
+
+    // Celebratory 4-note chime for workout / interval completion
+    playWorkoutComplete: function() {
+        if (!this.audioEnabled) return;
+        try {
+            const ctx = this.getAudioContext();
+            if (!ctx) return;
+            const notes = [523.25, 659.25, 783.99, 1046.50]; // C5, E5, G5, C6
+            notes.forEach((freq, idx) => {
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                const startTime = ctx.currentTime + (idx * 0.12);
+
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(freq, startTime);
+
+                gain.gain.setValueAtTime(0.18, startTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, startTime + 0.3);
+
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+
+                osc.start(startTime);
+                osc.stop(startTime + 0.3);
+            });
+        } catch (e) {
+            console.log('Audio complete error:', e);
         }
     }
 };

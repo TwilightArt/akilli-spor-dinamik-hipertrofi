@@ -1410,6 +1410,62 @@ class ApiController extends Controller
         ]);
     }
 
+    public function calculatorWater(): void
+    {
+        $input = $this->getRequestData();
+        $weightKg = (float)($input['weight_kg'] ?? 75.0);
+        $trainingMinutes = max(0, (int)($input['training_minutes'] ?? 45));
+        $climate = (string)($input['climate'] ?? 'temperate');
+        $creatine = !empty($input['creatine']);
+
+        $baseWater = $weightKg * 0.035;
+        $trainingWater = ($trainingMinutes / 30.0) * 0.35;
+        $climateWater = match ($climate) {
+            'warm' => 0.4,
+            'hot'  => 0.8,
+            default => 0.0
+        };
+        $creatineWater = $creatine ? 0.5 : 0.0;
+
+        $totalLiters = round($baseWater + $trainingWater + $climateWater + $creatineWater, 2);
+        $totalMl = (int)round($totalLiters * 1000);
+        $glasses = (int)ceil($totalMl / 250);
+
+        $this->jsonResponse([
+            'success'          => true,
+            'weight_kg'        => $weightKg,
+            'training_minutes' => $trainingMinutes,
+            'climate'          => $climate,
+            'creatine'         => $creatine,
+            'total_liters'     => $totalLiters,
+            'total_ml'         => $totalMl,
+            'glasses_250ml'    => $glasses,
+            'breakdown'        => [
+                'base_liters'     => round($baseWater, 2),
+                'training_liters' => round($trainingWater, 2),
+                'climate_liters'  => $climateWater,
+                'creatine_liters' => $creatineWater,
+            ]
+        ]);
+    }
+
+    public function exercisesLibrary(): void
+    {
+        $user = $this->requireApiAuth();
+        $exerciseModel = new \App\Models\Exercise();
+        $injuryFilter = new \App\Services\InjuryFilterService();
+
+        $exercises = $exerciseModel->getAllWithJointStress();
+        $activeInjuries = $injuryFilter->getActiveInjuredJoints((int)$user['id']);
+
+        $this->jsonResponse([
+            'success'         => true,
+            'exercises'       => $exercises,
+            'active_injuries' => $activeInjuries,
+            'total'           => count($exercises)
+        ]);
+    }
+
     /**
      * GET /api/onboarding/assessment
      */

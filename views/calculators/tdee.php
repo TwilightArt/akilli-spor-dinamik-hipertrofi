@@ -1,6 +1,7 @@
 <?php include __DIR__ . '/../layouts/header.php'; ?>
 
 <div class="max-w-4xl mx-auto space-y-6" x-data="tdeeCalculator()" x-init="initData()">
+    <?php $activeTab = 'tdee'; require __DIR__ . '/_tabs.php'; ?>
     <!-- Header Area -->
     <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 bg-slate-900 p-6 rounded-3xl border border-slate-800 shadow-xl relative overflow-hidden">
         <div class="absolute -right-16 -top-16 w-64 h-64 bg-brand-500/10 rounded-full blur-3xl pointer-events-none"></div>

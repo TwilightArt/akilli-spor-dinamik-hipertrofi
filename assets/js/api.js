@@ -102,7 +102,8 @@ const API = {
     },
     calculators: {
         calculate1rm(weight, reps) { return API.get('/api/calculators/1rm', { weight, reps }); },
-        calculateTdee(params) { return API.get('/api/calculators/tdee', params); }
+        calculateTdee(params) { return API.get('/api/calculators/tdee', params); },
+        calculateWater(params) { return API.get('/api/calculators/water', params); }
     },
     onboarding: {
         getAssessment() { return API.get('/api/onboarding/assessment'); },

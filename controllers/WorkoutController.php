@@ -423,4 +423,22 @@ class WorkoutController extends Controller
         $this->setFlash('success', '🎯 Yeni antrenman programınız başarıyla oluşturuldu ve haftalık takviminize atandı!');
         $this->redirect('/workout/dashboard');
     }
+
+
+    public function exercisesLibrary(): void
+    {
+        $user = $this->requireAuth();
+        $exerciseModel = new \App\Models\Exercise();
+        $injuryFilter = new \App\Services\InjuryFilterService();
+
+        $exercises = $exerciseModel->getAllWithJointStress();
+        $activeInjuries = $injuryFilter->getActiveInjuredJoints((int)$user['id']);
+
+        $this->render('workout/exercises', [
+            'pageTitle'      => 'Egzersiz Kütüphanesi & Biyomekanik Rehber — Akıllı Hipertrofi',
+            'user'           => $user,
+            'exercises'      => $exercises,
+            'activeInjuries' => $activeInjuries
+        ]);
+    }
 }

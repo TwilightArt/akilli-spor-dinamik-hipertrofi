@@ -210,9 +210,13 @@ function liveWorkout(config) {
             this.timerInterval = setInterval(() => {
                 if (this.timerRemaining > 0) {
                     this.timerRemaining--;
+                    if (this.timerRemaining <= 3 && this.timerRemaining > 0) {
+                        window.HipertrofiApp?.playCountdownTick?.();
+                    }
                 } else {
                     this.timerRunning = false;
                     clearInterval(this.timerInterval);
+                    window.HipertrofiApp?.playWorkStart?.();
                     if ('vibrate' in navigator) {
                         navigator.vibrate([200, 100, 200]);
                     }
