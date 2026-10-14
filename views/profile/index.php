@@ -7,6 +7,13 @@ $birthDate = Security::escape($user['birth_date'] ?? '1995-01-01');
 $heightCm = (float)($user['height_cm'] ?? 175.0);
 $currentWeightKg = (float)($user['current_weight_kg'] ?? 75.0);
 $fitnessLevel = $user['fitness_level'] ?? 'beginner';
+$fitnessLevels = [
+    'absolute_beginner' => 'Temel Adaptasyon',
+    'beginner'          => 'Başlangıç Seviyesi',
+    'intermediate'      => 'Orta Seviye',
+    'advanced'          => 'İleri Seviye'
+];
+$fitnessLevelTr = $fitnessLevels[$fitnessLevel] ?? 'Başlangıç Seviyesi';
 
 $pushupsCount = (int)($user['pushups_count'] ?? 0);
 $chinupsCount = (int)($user['chinups_count'] ?? 0);
@@ -29,8 +36,8 @@ $calisthenicScore = (float)($user['calisthenic_score'] ?? ($tierInfo['composite_
                 <div>
                     <div class="flex items-center gap-2 mb-1">
                         <span class="text-xs font-bold uppercase tracking-wider text-brand-400">Sporcu Profili</span>
-                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-brand-500/10 text-brand-300 border border-brand-500/20 capitalize">
-                            <?= $fitnessLevel ?>
+                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-brand-500/10 text-brand-300 border border-brand-500/20 whitespace-nowrap">
+                            <?= $fitnessLevelTr ?>
                         </span>
                         <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-300 border border-emerald-500/20">
                             Skor: <?= number_format($calisthenicScore, 1) ?>/100

@@ -1,29 +1,43 @@
     </main>
 
     <?php if (isset($_SESSION['user'])): ?>
-    <div class="block lg:hidden fixed bottom-0 left-0 w-full bg-zinc-950/95 backdrop-blur-xl border-t border-zinc-800 z-50 pb-safe">
-        <nav class="flex items-center justify-around p-2">
-            <a href="/workout/dashboard" class="flex flex-col items-center gap-1 p-2 text-slate-400 hover:text-brand-400 transition-colors">
-                <i class="fa-solid fa-home text-xl"></i>
-                <span class="text-[10px] font-medium">Panel</span>
+    <?php $currentUri = $_SERVER['REQUEST_URI'] ?? ''; ?>
+    <!-- Single Mobile Bottom Navigation Bar (5 Main Tabs) -->
+    <div class="fixed bottom-0 left-0 right-0 z-50 lg:hidden bg-slate-950/95 backdrop-blur-xl border-t border-slate-800 shadow-2xl pb-safe">
+        <nav class="flex items-center justify-around px-2 py-1.5 max-w-lg mx-auto">
+            <!-- 1. Panel -->
+            <a href="/workout/dashboard" class="flex flex-col items-center gap-1 py-1 px-2.5 transition-colors <?= str_starts_with($currentUri, '/workout/dashboard') ? 'text-brand-400 font-bold' : 'text-slate-400 hover:text-slate-200' ?>">
+                <i class="fa-solid fa-table-columns text-base"></i>
+                <span class="text-[10px]">Panel</span>
             </a>
-            <a href="/workout/dashboard" class="flex flex-col items-center gap-1 p-2 -mt-6">
-                <div class="w-12 h-12 rounded-full bg-gradient-to-tr from-brand-600 to-orange-500 text-white flex items-center justify-center shadow-lg shadow-brand-500/30 border-4 border-zinc-950">
-                    <i class="fa-solid fa-dumbbell text-lg"></i>
+
+            <!-- 2. Analiz -->
+            <a href="/analytics" class="flex flex-col items-center gap-1 py-1 px-2.5 transition-colors <?= str_starts_with($currentUri, '/analytics') ? 'text-emerald-400 font-bold' : 'text-slate-400 hover:text-slate-200' ?>">
+                <i class="fa-solid fa-chart-line text-base"></i>
+                <span class="text-[10px]">Analiz</span>
+            </a>
+
+            <!-- 3. Canlı (Ortada Vurgulu & Yükseltilmiş Buton) -->
+            <a href="/workout/live" class="flex flex-col items-center -mt-5 group focus:outline-none">
+                <div class="w-12 h-12 rounded-full bg-gradient-to-tr from-brand-600 via-rose-500 to-orange-500 text-white flex items-center justify-center shadow-lg shadow-brand-600/40 border-4 border-slate-950 group-active:scale-95 transition-transform">
+                    <i class="fa-solid fa-play text-xs ml-0.5"></i>
                 </div>
-                <span class="text-[10px] font-bold text-brand-400 mt-1">Antrenman</span>
+                <span class="text-[10px] font-bold mt-1 <?= str_starts_with($currentUri, '/workout/live') ? 'text-brand-400' : 'text-slate-300' ?>">Canlı</span>
             </a>
-            <a href="/analytics" class="flex flex-col items-center gap-1 p-2 text-slate-400 hover:text-brand-400 transition-colors">
-                <i class="fa-solid fa-chart-simple text-xl"></i>
-                <span class="text-[10px] font-medium">Analiz</span>
+
+            <!-- 4. Araçlar -->
+            <a href="/calculators/1rm" class="flex flex-col items-center gap-1 py-1 px-2.5 transition-colors <?= (str_starts_with($currentUri, '/calculators') || str_starts_with($currentUri, '/tools')) ? 'text-brand-400 font-bold' : 'text-slate-400 hover:text-slate-200' ?>">
+                <i class="fa-solid fa-calculator text-base"></i>
+                <span class="text-[10px]">Araçlar</span>
             </a>
-            <a href="/profile" class="flex flex-col items-center gap-1 p-2 text-slate-400 hover:text-brand-400 transition-colors">
-                <i class="fa-solid fa-user text-xl"></i>
-                <span class="text-[10px] font-medium">Profil</span>
+
+            <!-- 5. Profil -->
+            <a href="/profile" class="flex flex-col items-center gap-1 py-1 px-2.5 transition-colors <?= str_starts_with($currentUri, '/profile') ? 'text-brand-400 font-bold' : 'text-slate-400 hover:text-slate-200' ?>">
+                <i class="fa-solid fa-user-gear text-base"></i>
+                <span class="text-[10px]">Profil</span>
             </a>
         </nav>
     </div>
-    <div class="h-20 lg:hidden"></div>
     <?php endif; ?>
 
     <!-- Production Footer -->

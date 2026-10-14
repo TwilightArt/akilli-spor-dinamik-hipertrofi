@@ -11,6 +11,12 @@
 
     const Layout = {
         init() {
+            // Check if PHP layout is already rendered (native header or bottom nav already in DOM)
+            if (document.querySelector('header') || document.querySelector('.pb-safe')) {
+                this.setupOfflineListener();
+                this.setupServiceWorker();
+                return;
+            }
             this.renderHeader();
             this.renderBottomNav();
             this.setupOfflineListener();
@@ -23,7 +29,7 @@
             if (path.includes('analytics') || path.includes('progress')) return 'analytics';
             if (path.includes('profile')) return 'profile';
             if (path.includes('weigh-in') || path.includes('weigh_in')) return 'weigh-in';
-            if (path.includes('calculator') || path.includes('1rm') || path.includes('tdee')) return 'calculators';
+            if (path.includes('calculator') || path.includes('1rm') || path.includes('tdee') || path.includes('tools')) return 'calculators';
             if (path.includes('dashboard')) return 'dashboard';
             return 'dashboard';
         },
@@ -32,10 +38,11 @@
          * Render Top Header into <div id="app-header"></div>
          */
         renderHeader(user = null) {
+            if (document.querySelector('header') && !document.getElementById('app-header')) return;
             const headerContainer = document.getElementById('app-header');
-            if (!headerContainer) return;
+            if (!headerContainer || headerContainer.children.length > 0) return;
 
-            const currentUser = user || (window.API && window.API.auth.getCurrentUser()) || null;
+            const currentUser = user || (window.API && window.API.auth && window.API.auth.getCurrentUser()) || null;
             const userName = currentUser ? (currentUser.name || 'Sporcu') : 'Sporcu';
             const currentPage = this.getCurrentPage();
 
@@ -54,7 +61,7 @@
             div1.appendChild(div2);
             
             const logo = document.createElement('a');
-            logo.href = '/dashboard.html';
+            logo.href = '/workout/dashboard';
             logo.className = 'flex items-center gap-3 group';
             
             const logoIcon = document.createElement('div');
@@ -89,12 +96,12 @@
             nav.className = 'hidden lg:flex items-center gap-1';
             
             const links = [
-                { href: '/dashboard.html', icon: 'fa-house', text: 'Panel', id: 'dashboard' },
-                { href: '/live.html', icon: 'fa-dumbbell', text: 'Antrenman', id: 'live' },
-                { href: '/analytics.html', icon: 'fa-chart-simple', text: 'Analiz', id: 'analytics' },
-                { href: '/weigh-in.html', icon: 'fa-weight-scale', text: 'Tartı', id: 'weigh-in' },
-                { href: '/calculators/tdee.html', icon: 'fa-calculator', text: 'Hesaplayıcı', id: 'calculators' },
-                { href: '/profile.html', icon: 'fa-user', text: 'Profil', id: 'profile' }
+                { href: '/workout/dashboard', icon: 'fa-house', text: 'Panel', id: 'dashboard' },
+                { href: '/workout/live', icon: 'fa-dumbbell', text: 'Canlı İdman', id: 'live' },
+                { href: '/analytics', icon: 'fa-chart-simple', text: 'Analiz', id: 'analytics' },
+                { href: '/weigh-in', icon: 'fa-weight-scale', text: 'Tartı', id: 'weigh-in' },
+                { href: '/calculators/1rm', icon: 'fa-calculator', text: 'Hesaplayıcı', id: 'calculators' },
+                { href: '/profile', icon: 'fa-user', text: 'Profil', id: 'profile' }
             ];
             
             links.forEach(l => {
@@ -151,7 +158,7 @@
                         if (window.API && window.API.auth) {
                             window.API.auth.logout();
                         } else {
-                            window.location.href = '/index.html';
+                            window.location.href = '/login';
                         }
                     }
                 });
@@ -162,8 +169,9 @@
          * Render Bottom Mobile Navigation into <div id="app-nav"></div>
          */
         renderBottomNav() {
+            if (document.querySelector('.fixed.bottom-0') && !document.getElementById('app-nav')) return;
             const navContainer = document.getElementById('app-nav');
-            if (!navContainer) return;
+            if (!navContainer || navContainer.children.length > 0) return;
 
             const currentPage = this.getCurrentPage();
 
@@ -171,26 +179,32 @@
                 {
                     id: 'dashboard',
                     title: 'Panel',
-                    href: '/dashboard.html',
+                    href: '/workout/dashboard',
                     icon: 'fa-house'
-                },
-                {
-                    id: 'live',
-                    title: 'Antrenman',
-                    href: '/live.html',
-                    icon: 'fa-dumbbell',
-                    isCenter: true
                 },
                 {
                     id: 'analytics',
                     title: 'Analiz',
-                    href: '/analytics.html',
+                    href: '/analytics',
                     icon: 'fa-chart-simple'
+                },
+                {
+                    id: 'live',
+                    title: 'Canlı',
+                    href: '/workout/live',
+                    icon: 'fa-dumbbell',
+                    isCenter: true
+                },
+                {
+                    id: 'calculators',
+                    title: 'Araçlar',
+                    href: '/calculators/1rm',
+                    icon: 'fa-calculator'
                 },
                 {
                     id: 'profile',
                     title: 'Profil',
-                    href: '/profile.html',
+                    href: '/profile',
                     icon: 'fa-user'
                 }
             ];

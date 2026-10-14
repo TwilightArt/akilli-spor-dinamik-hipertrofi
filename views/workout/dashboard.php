@@ -15,6 +15,14 @@ $bmiCategory = 'Normal';
 if ($bmi < 18.5) $bmiCategory = 'Zayıf';
 elseif ($bmi >= 25.0 && $bmi < 30.0) $bmiCategory = 'Hafif Kilolu';
 elseif ($bmi >= 30.0) $bmiCategory = 'Yüksek';
+
+$fitnessLevels = [
+    'absolute_beginner' => 'Temel Adaptasyon',
+    'beginner'          => 'Başlangıç Seviyesi',
+    'intermediate'      => 'Orta Seviye',
+    'advanced'          => 'İleri Seviye'
+];
+$userLevelTr = $fitnessLevels[$user['fitness_level'] ?? 'beginner'] ?? 'Başlangıç Seviyesi';
 ?>
 <div class="space-y-6" x-data="{ showProgramWizard: false, showWeightModal: false }">
 
@@ -67,8 +75,8 @@ elseif ($bmi >= 30.0) $bmiCategory = 'Yüksek';
                 <div>
                     <div class="flex items-center gap-2 mb-1">
                         <h1 class="text-2xl font-bold font-display text-gradient tracking-tight"><?= Security::escape($user['name']) ?></h1>
-                        <span class="px-2.5 py-0.5 text-[10px] font-extrabold uppercase tracking-wider rounded-full bg-brand-500/10 text-brand-400 border border-brand-500/20">
-                            <?= Security::escape($user['fitness_level'] ?? 'beginner') ?>
+                        <span class="px-2.5 py-0.5 text-[10px] font-extrabold rounded-full bg-brand-500/10 text-brand-400 border border-brand-500/20 whitespace-nowrap">
+                            <?= $userLevelTr ?>
                         </span>
                     </div>
                     <p class="text-xs text-slate-400"><?= Security::escape($user['email']) ?> • Üyelik Tarihi: <?= date('d.m.Y', strtotime($user['created_at'])) ?></p>
@@ -76,20 +84,22 @@ elseif ($bmi >= 30.0) $bmiCategory = 'Yüksek';
             </div>
 
             <!-- Quick Action Buttons -->
-            <div class="flex flex-wrap items-center gap-2.5">
-                <a href="/analytics" class="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-emerald-400 hover:text-white border border-slate-700 hover:border-emerald-500/40 font-bold text-xs rounded-xl shadow-lg transition-all flex items-center gap-2">
-                    <i class="fa-solid fa-chart-line text-xs"></i>
-                    <span>Ağırlık Grafikleri & PR</span>
-                </a>
-                <button type="button" @click="showProgramWizard = !showProgramWizard" 
-                    class="px-4 py-2.5 bg-gradient-to-r from-brand-600 to-indigo-600 hover:from-brand-500 hover:to-indigo-500 text-white font-bold text-xs rounded-xl shadow-lg shadow-brand-600/30 transition-all flex items-center gap-2">
-                    <i class="fa-solid fa-wand-magic-sparkles text-xs"></i>
-                    <span>Programı Yeniden Kur</span>
-                </button>
-                <a href="/workout/live" class="px-4 py-2.5 btn-sporty text-xs flex items-center gap-2">
+            <div class="flex flex-col sm:flex-row sm:items-center gap-2.5 w-full lg:w-auto">
+                <a href="/workout/live" class="w-full sm:w-auto order-1 sm:order-3 px-5 py-3 sm:py-2.5 btn-sporty text-xs font-bold flex items-center justify-center gap-2 shadow-lg shadow-brand-600/30">
                     <i class="fa-solid fa-play text-xs"></i>
                     <span>Bugünkü Antrenmana Başla</span>
                 </a>
+                <div class="grid grid-cols-2 sm:flex gap-2 w-full sm:w-auto order-2 sm:order-1">
+                    <a href="/analytics" class="w-full sm:w-auto px-3.5 sm:px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-emerald-400 hover:text-white border border-slate-700 hover:border-emerald-500/40 font-bold text-xs rounded-xl shadow-md transition-all flex items-center justify-center gap-1.5 text-center whitespace-nowrap">
+                        <i class="fa-solid fa-chart-line text-xs shrink-0"></i>
+                        <span>Ağırlık Grafikleri & PR</span>
+                    </a>
+                    <button type="button" @click="showProgramWizard = !showProgramWizard" 
+                        class="w-full sm:w-auto px-3.5 sm:px-4 py-2.5 bg-gradient-to-r from-brand-600 to-indigo-600 hover:from-brand-500 hover:to-indigo-500 text-white font-bold text-xs rounded-xl shadow-md shadow-brand-600/20 transition-all flex items-center justify-center gap-1.5 text-center whitespace-nowrap">
+                        <i class="fa-solid fa-wand-magic-sparkles text-xs shrink-0"></i>
+                        <span>Programı Yeniden Kur</span>
+                    </button>
+                </div>
             </div>
         </div>
 
@@ -111,16 +121,16 @@ elseif ($bmi >= 30.0) $bmiCategory = 'Yüksek';
                     </p>
                 </div>
             </div>
-            <div class="flex items-center gap-2.5 self-stretch sm:self-auto justify-end border-t sm:border-t-0 border-slate-800/80 pt-2 sm:pt-0">
-                <div class="text-center px-3 py-1.5 bg-slate-900 rounded-xl border border-slate-800">
+            <div class="w-full sm:w-auto grid grid-cols-3 gap-2.5 border-t sm:border-t-0 border-slate-800/80 pt-3 sm:pt-0">
+                <div class="text-center px-3 py-2 bg-slate-900 rounded-xl border border-slate-800">
                     <span class="text-[9px] uppercase font-bold text-slate-500 block">Bu Hafta</span>
                     <span class="text-sm font-black font-mono text-orange-400"><?= (int)($streakStats['this_week_count'] ?? 0) ?></span>
                 </div>
-                <div class="text-center px-3 py-1.5 bg-slate-900 rounded-xl border border-slate-800">
+                <div class="text-center px-3 py-2 bg-slate-900 rounded-xl border border-slate-800">
                     <span class="text-[9px] uppercase font-bold text-slate-500 block">Hafta Serisi</span>
                     <span class="text-sm font-black font-mono text-amber-400"><?= (int)($streakStats['streak_weeks'] ?? 0) ?></span>
                 </div>
-                <div class="text-center px-3 py-1.5 bg-slate-900 rounded-xl border border-slate-800">
+                <div class="text-center px-3 py-2 bg-slate-900 rounded-xl border border-slate-800">
                     <span class="text-[9px] uppercase font-bold text-slate-500 block">Toplam İdman</span>
                     <span class="text-sm font-black font-mono text-emerald-400"><?= (int)($streakStats['total_completed'] ?? 0) ?></span>
                 </div>
@@ -358,7 +368,7 @@ elseif ($bmi >= 30.0) $bmiCategory = 'Yüksek';
             <div class="p-3.5 rounded-2xl bg-slate-950/70 border border-slate-800/80">
                 <div class="w-7 h-7 rounded-lg bg-brand-500/10 text-brand-400 flex items-center justify-center text-xs font-bold mb-2">1</div>
                 <h4 class="text-xs font-bold text-white mb-1">4 Parametreli Kondisyon</h4>
-                <p class="text-[11px] text-slate-400 leading-relaxed">Şınav, Barfiks, Squat ve Plank testleriniz birleştirilerek seviyeniz (<?= Security::escape($user['fitness_level'] ?? 'beginner') ?>) ve güvenli regresyonlar belirlendi.</p>
+                <p class="text-[11px] text-slate-400 leading-relaxed">Şınav, Barfiks, Squat ve Plank testleriniz birleştirilerek seviyeniz (<?= $userLevelTr ?>) ve güvenli regresyonlar belirlendi.</p>
             </div>
             <div class="p-3.5 rounded-2xl bg-slate-950/70 border border-slate-800/80">
                 <div class="w-7 h-7 rounded-lg bg-amber-500/10 text-amber-400 flex items-center justify-center text-xs font-bold mb-2">2</div>

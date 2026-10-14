@@ -5,6 +5,15 @@ $currentUser = $_SESSION['user'] ?? null;
 $csrfToken = Security::generateCsrfToken();
 $flash = $_SESSION['flash'] ?? null;
 unset($_SESSION['flash']);
+
+$fitnessLevels = [
+    'absolute_beginner' => 'Temel Adaptasyon',
+    'beginner'          => 'Başlangıç Seviyesi',
+    'intermediate'      => 'Orta Seviye',
+    'advanced'          => 'İleri Seviye'
+];
+$userLevelRaw = $currentUser['fitness_level'] ?? 'beginner';
+$userLevelTr = $fitnessLevels[$userLevelRaw] ?? 'Başlangıç Seviyesi';
 ?>
 <!DOCTYPE html>
 <html lang="tr" class="dark h-full">
@@ -204,49 +213,63 @@ unset($_SESSION['flash']);
 
                 <!-- Desktop Navigation Links -->
                 <?php if ($currentUser): ?>
-                <nav class="hidden lg:flex items-center gap-1">
-                    <a href="/workout/dashboard" class="px-3 py-2 rounded-lg text-sm font-medium text-slate-300 hover:text-white hover:bg-slate-800 transition-all flex items-center gap-1.5">
-                        <i class="fa-solid fa-table-columns text-slate-400"></i> Panel
+                <?php $currentUri = $_SERVER['REQUEST_URI'] ?? ''; ?>
+                <nav class="hidden lg:flex items-center gap-1 xl:gap-1.5">
+                    <a href="/workout/dashboard" class="px-2.5 xl:px-3 py-2 rounded-lg text-xs xl:text-sm font-medium whitespace-nowrap transition-all flex items-center gap-1.5 <?= str_starts_with($currentUri, '/workout/dashboard') ? 'bg-slate-800 text-white font-semibold' : 'text-slate-300 hover:text-white hover:bg-slate-800/60' ?>">
+                        <i class="fa-solid fa-table-columns text-slate-400 text-xs"></i>
+                        <span>Panel</span>
                     </a>
-                    <a href="/workout/dashboard" class="px-3 py-2 rounded-lg text-sm font-medium bg-brand-600/10 text-brand-400 border border-brand-500/30 hover:bg-brand-600 hover:text-white transition-all flex items-center gap-1.5 shadow-sm">
-                        <i class="fa-solid fa-play text-xs"></i> Canlı Antrenman
+                    <a href="/workout/live" class="px-2.5 xl:px-3 py-2 rounded-lg text-xs xl:text-sm font-semibold whitespace-nowrap transition-all flex items-center gap-1.5 <?= str_starts_with($currentUri, '/workout/live') ? 'bg-brand-600 text-white shadow-md shadow-brand-600/30' : 'bg-brand-600/10 text-brand-400 border border-brand-500/30 hover:bg-brand-600 hover:text-white shadow-sm' ?>">
+                        <i class="fa-solid fa-play text-xs"></i>
+                        <span>Canlı İdman</span>
                     </a>
-                    <a href="/analytics" class="px-3 py-2 rounded-lg text-sm font-medium text-slate-300 hover:text-white hover:bg-slate-800 transition-all flex items-center gap-1.5">
-                        <i class="fa-solid fa-chart-line text-emerald-400"></i> Ağırlık Grafikleri & PR
+                    <a href="/analytics" class="px-2.5 xl:px-3 py-2 rounded-lg text-xs xl:text-sm font-medium whitespace-nowrap transition-all flex items-center gap-1.5 <?= str_starts_with($currentUri, '/analytics') ? 'bg-slate-800 text-emerald-400 font-semibold' : 'text-slate-300 hover:text-white hover:bg-slate-800/60' ?>">
+                        <i class="fa-solid fa-chart-line text-emerald-400 text-xs"></i>
+                        <span>Analitik & PR</span>
                     </a>
-                    <a href="/weigh-in" class="px-3 py-2 rounded-lg text-sm font-medium text-slate-300 hover:text-white hover:bg-slate-800 transition-all flex items-center gap-1.5">
-                        <i class="fa-solid fa-weight-scale text-slate-400"></i> Tartı
+                    <a href="/weigh-in" class="px-2.5 xl:px-3 py-2 rounded-lg text-xs xl:text-sm font-medium whitespace-nowrap transition-all flex items-center gap-1.5 <?= str_starts_with($currentUri, '/weigh-in') ? 'bg-slate-800 text-white font-semibold' : 'text-slate-300 hover:text-white hover:bg-slate-800/60' ?>">
+                        <i class="fa-solid fa-weight-scale text-slate-400 text-xs"></i>
+                        <span>Tartı & Ölçü</span>
                     </a>
-                    <a href="/onboarding/equipment" class="px-3 py-2 rounded-lg text-sm font-medium text-slate-300 hover:text-white hover:bg-slate-800 transition-all flex items-center gap-1.5">
-                        <i class="fa-solid fa-dumbbell text-slate-400"></i> Ekipman
+                    <a href="/workout/exercises" class="px-2.5 xl:px-3 py-2 rounded-lg text-xs xl:text-sm font-medium whitespace-nowrap transition-all flex items-center gap-1.5 <?= str_starts_with($currentUri, '/workout/exercises') ? 'bg-slate-800 text-amber-400 font-semibold' : 'text-slate-300 hover:text-white hover:bg-slate-800/60' ?>">
+                        <i class="fa-solid fa-book-bookmark text-amber-400 text-xs"></i>
+                        <span>Egzersizler</span>
                     </a>
-                    <a href="/workout/exercises" class="px-3 py-2 rounded-lg text-sm font-medium text-slate-300 hover:text-white hover:bg-slate-800 transition-all flex items-center gap-1.5">
-                        <i class="fa-solid fa-book-bookmark text-amber-400"></i> Egzersizler
+                    <a href="/calculators/1rm" class="px-2.5 xl:px-3 py-2 rounded-lg text-xs xl:text-sm font-medium whitespace-nowrap transition-all flex items-center gap-1.5 <?= (str_starts_with($currentUri, '/calculators') || str_starts_with($currentUri, '/tools')) ? 'bg-slate-800 text-brand-400 font-semibold' : 'text-slate-300 hover:text-white hover:bg-slate-800/60' ?>">
+                        <i class="fa-solid fa-calculator text-brand-400 text-xs"></i>
+                        <span>Hesaplayıcılar</span>
                     </a>
-                    <a href="/calculators/1rm" class="px-3 py-2 rounded-lg text-sm font-medium text-slate-300 hover:text-white hover:bg-slate-800 transition-all flex items-center gap-1.5">
-                        <i class="fa-solid fa-calculator text-brand-400"></i> Hesaplayıcılar
+                    <a href="/onboarding/equipment" class="px-2.5 xl:px-3 py-2 rounded-lg text-xs xl:text-sm font-medium whitespace-nowrap transition-all flex items-center gap-1.5 <?= str_starts_with($currentUri, '/onboarding/equipment') ? 'bg-slate-800 text-white font-semibold' : 'text-slate-300 hover:text-white hover:bg-slate-800/60' ?>">
+                        <i class="fa-solid fa-dumbbell text-slate-400 text-xs"></i>
+                        <span>Ekipman</span>
                     </a>
-                    <a href="/profile" class="px-3 py-2 rounded-lg text-sm font-medium text-slate-300 hover:text-white hover:bg-slate-800 transition-all flex items-center gap-1.5">
-                        <i class="fa-solid fa-user-gear text-slate-400"></i> Profil & Boy/Kilo
+                    <a href="/profile" class="px-2.5 xl:px-3 py-2 rounded-lg text-xs xl:text-sm font-medium whitespace-nowrap transition-all flex items-center gap-1.5 <?= str_starts_with($currentUri, '/profile') ? 'bg-slate-800 text-white font-semibold' : 'text-slate-300 hover:text-white hover:bg-slate-800/60' ?>">
+                        <i class="fa-solid fa-user-gear text-slate-400 text-xs"></i>
+                        <span>Profil</span>
                     </a>
                 </nav>
                 <?php endif; ?>
 
                 <!-- User Profile / Auth Actions -->
-                <div class="flex items-center gap-3">
+                <div class="flex items-center gap-2 sm:gap-3">
                     <?php if ($currentUser): ?>
-                        <div class="flex items-center gap-3">
-                            <a href="/profile" title="Profil Ayarları & Boy/Kilo" class="hidden sm:flex flex-col text-right group hover:opacity-90 transition-all">
-                                <span class="text-xs font-semibold text-white leading-tight group-hover:text-brand-400 flex items-center gap-1.5 justify-end">
-                                    <?= Security::escape($currentUser['name']) ?>
-                                    <i class="fa-solid fa-gear text-[10px] text-slate-500 group-hover:text-brand-400"></i>
-                                </span>
-                                <span class="text-[11px] text-brand-400 capitalize"><?= Security::escape($currentUser['fitness_level'] ?? 'beginner') ?></span>
-                            </a>
-                            <a href="/logout" title="Çıkış Yap" class="w-9 h-9 rounded-lg bg-slate-800 hover:bg-red-500/20 text-slate-400 hover:text-red-400 border border-slate-700 hover:border-red-500/30 flex items-center justify-center transition-all">
-                                <i class="fa-solid fa-arrow-right-from-bracket text-sm"></i>
-                            </a>
-                        </div>
+                        <!-- Seviye Rozeti (Mobilde ve Masaüstünde Görünür) -->
+                        <span class="px-2 sm:px-2.5 py-1 text-[10px] sm:text-xs font-bold rounded-full bg-brand-500/10 text-brand-400 border border-brand-500/20 whitespace-nowrap">
+                            <?= $userLevelTr ?>
+                        </span>
+
+                        <!-- Masaüstü Kullanıcı Adı ve Profil Linki -->
+                        <a href="/profile" title="Profil Ayarları & Boy/Kilo" class="hidden sm:flex flex-col text-right group hover:opacity-90 transition-all">
+                            <span class="text-xs font-semibold text-white leading-tight group-hover:text-brand-400 flex items-center gap-1.5 justify-end">
+                                <?= Security::escape($currentUser['name']) ?>
+                                <i class="fa-solid fa-gear text-[10px] text-slate-500 group-hover:text-brand-400"></i>
+                            </span>
+                        </a>
+
+                        <!-- Çıkış Butonu -->
+                        <a href="/logout" title="Çıkış Yap" class="w-9 h-9 rounded-lg bg-slate-800 hover:bg-red-500/20 text-slate-400 hover:text-red-400 border border-slate-700 hover:border-red-500/30 flex items-center justify-center transition-all shrink-0">
+                            <i class="fa-solid fa-arrow-right-from-bracket text-sm"></i>
+                        </a>
                     <?php else: ?>
                         <a href="/login" class="text-sm font-medium text-slate-300 hover:text-white px-3 py-1.5 transition-colors">Giriş</a>
                         <a href="/register" class="text-sm font-medium px-4 py-2 text-sm btn-sporty">Kayıt Ol</a>
@@ -254,46 +277,10 @@ unset($_SESSION['flash']);
                 </div>
             </div>
         </div>
-
-        <!-- Mobile Bottom Quick Navigation Bar (Sticky for Single-Hand Use) -->
-        <?php if ($currentUser): ?>
-        <div class="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-slate-900/95 backdrop-blur-lg border-t border-slate-800 px-3 py-2 flex items-center justify-around">
-            <a href="/workout/dashboard" class="flex flex-col items-center gap-1 text-slate-400 hover:text-white py-1">
-                <i class="fa-solid fa-table-columns text-base"></i>
-                <span class="text-[9px] font-medium">Panel</span>
-            </a>
-            <a href="/analytics" class="flex flex-col items-center gap-1 text-emerald-400 hover:text-emerald-300 py-1">
-                <i class="fa-solid fa-chart-line text-base"></i>
-                <span class="text-[9px] font-medium">Ağırlık</span>
-            </a>
-            <a href="/workout/live" class="flex flex-col items-center gap-1 text-brand-400 hover:text-brand-300 py-1">
-                <div class="w-9 h-9 rounded-full bg-brand-600 text-white flex items-center justify-center shadow-lg shadow-brand-600/40 -mt-4 border-2 border-slate-900">
-                    <i class="fa-solid fa-play text-xs ml-0.5"></i>
-                </div>
-                <span class="text-[9px] font-bold text-brand-400">Canlı</span>
-            </a>
-            <a href="/weigh-in" class="flex flex-col items-center gap-1 text-slate-400 hover:text-white py-1">
-                <i class="fa-solid fa-weight-scale text-base"></i>
-                <span class="text-[9px] font-medium">Tartı</span>
-            </a>
-            <a href="/calculators/1rm" class="flex flex-col items-center gap-1 text-slate-400 hover:text-white py-1">
-                <i class="fa-solid fa-calculator text-base"></i>
-                <span class="text-[9px] font-medium">Araçlar</span>
-            </a>
-            <a href="/workout/exercises" class="flex flex-col items-center gap-1 text-slate-400 hover:text-white py-1">
-                <i class="fa-solid fa-book-bookmark text-base text-amber-400"></i>
-                <span class="text-[9px] font-medium">Egzersiz</span>
-            </a>
-            <a href="/profile" class="flex flex-col items-center gap-1 text-slate-400 hover:text-white py-1">
-                <i class="fa-solid fa-user-gear text-base"></i>
-                <span class="text-[9px] font-medium">Profil</span>
-            </a>
-        </div>
-        <?php endif; ?>
     </header>
 
     <!-- Global Flash Alerts Container -->
-    <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 mb-16 md:mb-6">
+    <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-28 lg:pb-12">
         <?php if ($flash): ?>
             <div x-data="{ show: true }" x-show="show" x-transition.duration.300ms role="<?= in_array($flash['type'], ['danger', 'warning']) ? 'alert' : 'status' ?>" class="mb-6 p-4 rounded-2xl flex items-start justify-between gap-3 shadow-lg <?=
                 $flash['type'] === 'success' ? 'bg-emerald-950/60 border border-emerald-500/30 text-emerald-200' : 
