@@ -5,7 +5,7 @@
  * ============================================================================
  */
 
-const CACHE_NAME = 'hipertrofi-cache-v4';
+const CACHE_NAME = 'hipertrofi-cache-v5';
 
 const STATIC_ASSETS = [
     '/manifest.json',

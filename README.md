@@ -34,12 +34,39 @@
 * **Hareket Hareket Zirve Kıyaslama:** Tüm egzersizlerde bugüne kadar kaç kiloya çıkıldığını gösteren yatay bar grafiği.
 * **Detaylı Set Geçmişi & PR:** Kişisel rekor kırılan setler için `🏅 ZİRVE PR` rozetleri.
 
+### 6. Biyomekanik Egzersiz Kütüphanesi
+* **Genişletilmiş Veritabanı:** Kas grubu (Göğüs, Sırt, Omuz, Bacak, Kol, Kor), ekipman gereksinimi ve zorluk seviyesine göre gerçek zamanlı arama ve filtreleme.
+* **Biyomekanik Parametreler:** Birincil/ikincil hedef kas grupları, eklem stres indeksleri ve seviyeye uygun regresyon/progresyon alternatifleri.
+
+### 7. Hesaplayıcılar & İnteraktif Simülatörler
+* **Günlük Su İhtiyacı:** Vücut ağırlığı, idman süresi, iklim şartları ve kreatin kullanımına göre Litre, ml ve bardak cinsinden anlık hidrasyon hedefi.
+* **İnteraktif RPE & RIR Simülatörü:** NSCA yük yüzdesi tablosu baz alınarak 1RM, hedef tekrar ve RPE/RIR değerlerine göre ideal çalışma ağırlığı hesaplama ve renk kodlu referans matrisi.
+* **1RM & TDEE:** Epley formülü ile tek tekrar maksimum tahmini ve Mifflin-St Jeor denklemiyle günlük kalori/makro ihtiyacı.
+
+### 8. HIIT & Tabata Kronometresi (Web Audio Sesli Sayaç)
+* **Zamanlama Şablonları:** Tabata (20/10 x 8), Klasik HIIT (40/20 x 10), EMOM ve serbest çalışma/dinlenme yapılandırması.
+* **Web Audio API Entegrasyonu:** Sıfır harici ses dosyası bağımlılığıyla dinamik sentezlenen sesli uyarılar (Son 3 saniye geri sayım bip uyarısı, çalışma başlama tonu, dinlenme tonu, seans bitiş fanfarı).
+* **Canlı İdman Senkronizasyonu:** Canlı antrenmandaki set arası dinlenme sayacına tam entegre son 3 saniye sesli uyarısı.
+
+### 9. Antrenman Streak Sayacı & Offline-First Antrenman Defteri
+* **Streak (Seri) Sayacı:** Bu haftaki idman adedi, kesintisiz hafta serisi ve toplam tamamlanan seans metriği.
+* **Offline-First Defter:** Çevrimdışı öncelikli (`localStorage`), anlık enerji (1-5), uyku kalitesi, pump ve serbest antrenman notu tutma yeteneği.
+
+### 10. Vücut Ölçüleri Takipçisi (Body Measurements)
+* **Bölgesel Takip:** Boyun, omuz, göğüs, kol, bel, kalça, bacak, kalf ve tahmini yağ oranı (`body_fat_pct`) takibi.
+* **Delta Analitiği:** Veritabanı (`body_measurements` tablosu) ve `localStorage` çift katmanlı kayıt mimarisi, ilk/son ölçüm değişim rozetleri.
+
+### 11. JSON Veri İçe/Dışa Aktarma & Mobil PWA
+* **Veri Taşınabilirliği:** Kullanıcının tüm antrenman geçmişini, ölçümlerini ve profil ayarlarını tek tıkla JSON olarak yedekleme ve doğrulayarak geri yükleme imkanı.
+* **PWA Desteği:** `manifest.json`, Service Worker (v5 Önbellekleme) ve mobil ana ekrana eklenebilir tam ekran uygulama deneyimi.
+
 ---
 
 ## 🛠️ Teknoloji Yığını ve Mimari Kısıtlar
 * **Backend:** PHP 8.2+ (Strict Types, OOP, MVC, PDO).
-* **Veritabanı:** MySQL 8.0+ / MariaDB 10.5+ (InnoDB, UTF8mb4) & SQLite 3 (Yerel test için sıfır konfigürasyon).
+* **Veritabanı:** 15 İlişkisel Tablo (InnoDB, UTF8mb4 - `body_measurements` dahil) | MySQL 8.0+ / MariaDB 10.5+ & SQLite 3 (Yerel test için sıfır konfigürasyon otomatik bootstrap).
 * **Frontend:** Vanilla JS, Alpine.js v3 (Reaktivite), Chart.js v4 (Grafikler), Tailwind CSS (CDN).
+* **Ses & PWA:** Web Audio API (Sıfır harici ses dosyası bağımlılığı), Service Worker (v5 Önbellekleme), Web App Manifest.
 * **Güvenlik:** Argon2id parola şifreleme, sıkı CSRF token doğrulaması, PDO Prepared Statements (SQLi Koruması), XSS kaçışları.
 * **Hosting:** Paylaşımlı cPanel (LiteSpeed / Apache) veya VPS. **Node.js, Python veya arka plan daemon süreçleri gerektirmez.**
 
