@@ -17,14 +17,14 @@
 - [x] Egzersiz kütüphanesi (Tamamlandı)
 
 ## 3. Faz 3: Takip & Kayıt Modülleri (Offline-First / LocalStorage)
-- [ ] Günlük antrenman defteri
-- [ ] Vücut ölçüleri takipçisi
-- [ ] Antrenman streak sayacı
+- [x] Günlük antrenman defteri (Tamamlandı)
+- [x] Vücut ölçüleri takipçisi (Tamamlandı)
+- [x] Antrenman streak sayacı (Tamamlandı)
 - [x] Kişisel rekorlar - PR paneli (Tamamlandı)
 
 ## 4. Faz 4: Veri Yönetimi & Kullanıcı Deneyimi
-- [ ] JSON veri dışa/içe aktarma
-- [ ] Mobil PWA desteği
+- [x] JSON veri dışa/içe aktarma (Tamamlandı)
+- [x] Mobil PWA desteği (Tamamlandı)
 - [x] Sesli sayaç uyarıları (Tamamlandı)
 - [x] Dinamik karanlık mod (Tamamlandı)
 

@@ -128,6 +128,8 @@ class WorkoutController extends Controller
         $stmtPast->execute(['uid' => $userId]);
         $recentWorkouts = $stmtPast->fetchAll();
 
+        $streakStats = $this->sessionModel->getUserStreakStats($userId);
+
         $this->render('workout/dashboard', [
             'pageTitle'      => 'Sporcu & Müşteri Paneli — Akıllı Hipertrofi',
             'user'           => $user,
@@ -138,7 +140,8 @@ class WorkoutController extends Controller
             'latestWeight'   => $latestWeight,
             'bmi'            => $bmi,
             'baselines'      => $baselines,
-            'activeInjuries' => $activeInjuries
+            'activeInjuries' => $activeInjuries,
+            'streakStats'    => $streakStats
         ]);
     }
 

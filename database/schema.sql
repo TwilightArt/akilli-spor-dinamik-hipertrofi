@@ -229,6 +229,27 @@ CREATE TABLE `daily_weigh_ins` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ----------------------------------------------------------------------------
+-- 13b. body_measurements
+-- ----------------------------------------------------------------------------
+CREATE TABLE `body_measurements` (
+  `id` INT AUTO_INCREMENT PRIMARY KEY,
+  `user_id` INT NOT NULL,
+  `measured_date` DATE NOT NULL,
+  `neck_cm` DECIMAL(5,2) NULL,
+  `shoulder_cm` DECIMAL(5,2) NULL,
+  `chest_cm` DECIMAL(5,2) NULL,
+  `arm_cm` DECIMAL(5,2) NULL,
+  `waist_cm` DECIMAL(5,2) NULL,
+  `hip_cm` DECIMAL(5,2) NULL,
+  `thigh_cm` DECIMAL(5,2) NULL,
+  `calf_cm` DECIMAL(5,2) NULL,
+  `body_fat_pct` DECIMAL(4,2) NULL,
+  `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT `fk_body_measurements_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
+  INDEX `idx_measurements_user_date` (`user_id`, `measured_date`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ----------------------------------------------------------------------------
 -- 14. workout_logs
 -- ----------------------------------------------------------------------------
 CREATE TABLE `workout_logs` (

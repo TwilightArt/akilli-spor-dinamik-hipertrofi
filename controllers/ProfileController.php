@@ -7,6 +7,7 @@ use App\Core\Controller;
 use App\Core\Security;
 use App\Models\User;
 use App\Models\DailyWeighIn;
+use App\Models\BodyMeasurement;
 use App\Services\InjuryFilterService;
 use App\Services\RfiService;
 use App\Services\GeminiWorkoutService;
@@ -204,6 +205,100 @@ class ProfileController extends Controller
         $this->userModel->updatePassword($userId, $newPassword);
 
         $this->setFlash('success', 'Parolanız başarıyla güncellendi.');
+        $this->redirect('/profile');
+    }
+
+    /**
+     * GET /profile/export
+     * Export all user biometrics, weigh-ins and body measurements as a JSON file download.
+     */
+    public function export(): void
+    {
+        $user = $this->requireAuth();
+        $userId = (int)$user['id'];
+
+        $weighInModel = new DailyWeighIn();
+        $measurementModel = new BodyMeasurement();
+
+        $exportData = [
+            'version'           => '2.1',
+            'exported_at'       => date('Y-m-d H:i:s'),
+            'user'              => [
+                'name'              => $user['name'],
+                'email'             => $user['email'],
+                'gender'            => $user['gender'] ?? 'male',
+                'birth_date'        => $user['birth_date'] ?? null,
+                'height_cm'         => $user['height_cm'] ?? null,
+                'current_weight_kg' => $user['current_weight_kg'] ?? null,
+                'fitness_level'     => $user['fitness_level'] ?? null,
+                'calisthenic_score' => $user['calisthenic_score'] ?? null,
+            ],
+            'daily_weigh_ins'   => $weighInModel->getRecentHistory($userId, 365),
+            'body_measurements' => $measurementModel->getRecentHistory($userId, 365)
+        ];
+
+        $filename = 'hipertrofi_yedek_' . date('Y-m-d_His') . '.json';
+        header('Content-Type: application/json; charset=utf-8');
+        header('Content-Disposition: attachment; filename="' . $filename . '"');
+        header('Pragma: no-cache');
+        header('Expires: 0');
+        echo json_encode($exportData, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+        exit;
+    }
+
+    /**
+     * POST /profile/import
+     * Validate and import user data from uploaded JSON file or text.
+     */
+    public function import(): void
+    {
+        $user = $this->requireAuth();
+        Security::verifyRequestCsrf();
+        $userId = (int)$user['id'];
+
+        $jsonContent = '';
+        if (!empty($_FILES['backup_file']['tmp_name']) && is_uploaded_file($_FILES['backup_file']['tmp_name'])) {
+            $jsonContent = (string)file_get_contents($_FILES['backup_file']['tmp_name']);
+        } elseif (!empty($_POST['json_data'])) {
+            $jsonContent = trim((string)$_POST['json_data']);
+        }
+
+        if ($jsonContent === '') {
+            $this->setFlash('danger', 'Lütfen geçerli bir JSON yedek dosyası yükleyin veya JSON metni yapıştırın.');
+            $this->redirect('/profile');
+        }
+
+        $decoded = json_decode($jsonContent, true);
+        if (!is_array($decoded)) {
+            $this->setFlash('danger', 'Yüklenen veri geçerli bir JSON formatında değil.');
+            $this->redirect('/profile');
+        }
+
+        $data = $decoded['data'] ?? $decoded;
+        $importedWeighIns = 0;
+        $importedMeasurements = 0;
+
+        if (!empty($data['daily_weigh_ins']) && is_array($data['daily_weigh_ins'])) {
+            $weighInModel = new DailyWeighIn();
+            foreach ($data['daily_weigh_ins'] as $w) {
+                if (!empty($w['weight_kg']) && !empty($w['logged_date'])) {
+                    $weighInModel->logWeight($userId, (float)$w['weight_kg'], (string)$w['logged_date'], $w['notes'] ?? null);
+                    $importedWeighIns++;
+                }
+            }
+        }
+
+        if (!empty($data['body_measurements']) && is_array($data['body_measurements'])) {
+            $measurementModel = new BodyMeasurement();
+            foreach ($data['body_measurements'] as $m) {
+                if (!empty($m['measured_date'])) {
+                    $measurementModel->logMeasurement($userId, $m);
+                    $importedMeasurements++;
+                }
+            }
+        }
+
+        $this->setFlash('success', "Yedek başarıyla içe aktarıldı: {$importedWeighIns} tartı kaydı, {$importedMeasurements} vücut ölçümü sisteme eklendi.");
         $this->redirect('/profile');
     }
 }

@@ -6,15 +6,18 @@ namespace App\Controllers;
 use App\Core\Controller;
 use App\Core\Security;
 use App\Models\DailyWeighIn;
+use App\Models\BodyMeasurement;
 
 class WeighInController extends Controller
 {
     private DailyWeighIn $weighInModel;
+    private BodyMeasurement $measurementModel;
 
     public function __construct()
     {
         parent::__construct();
         $this->weighInModel = new DailyWeighIn();
+        $this->measurementModel = new BodyMeasurement();
     }
 
     public function index(): void
@@ -26,6 +29,9 @@ class WeighInController extends Controller
         $movingAvg7 = $this->weighInModel->getMovingAverage($userId, 7);
         $weeklyRate = $this->weighInModel->getWeeklyRateOfChange($userId);
 
+        $measurements = $this->measurementModel->getRecentHistory($userId, 20);
+        $deltas = $this->measurementModel->getDeltas($userId);
+
         // Prepare Chart.js arrays
         $labels = [];
         $rawWeights = [];
@@ -36,20 +42,21 @@ class WeighInController extends Controller
             $rawWeights[] = (float)$entry['weight_kg'];
 
             // Compute running 7-day average up to this date
-            $entryDate = $entry['logged_date'];
             $subset = array_slice($rawWeights, max(0, $idx - 6), min(7, $idx + 1));
             $movingAverages[] = round(array_sum($subset) / count($subset), 2);
         }
 
         $this->render('weigh_in/index', [
-            'pageTitle'       => 'Tartı Takibi & Trend — Akıllı Hipertrofi',
-            'user'            => $user,
-            'history'         => array_reverse($history),
-            'movingAvg7'      => $movingAvg7,
-            'weeklyRate'      => $weeklyRate,
-            'chartLabels'     => json_encode($labels),
-            'chartRawWeights' => json_encode($rawWeights),
-            'chartMovingAvg'  => json_encode($movingAverages)
+            'pageTitle'         => 'Tartı & Vücut Ölçüleri Takibi — Akıllı Hipertrofi',
+            'user'              => $user,
+            'history'           => array_reverse($history),
+            'movingAvg7'        => $movingAvg7,
+            'weeklyRate'        => $weeklyRate,
+            'measurements'      => $measurements,
+            'deltas'            => $deltas,
+            'chartLabels'       => json_encode($labels),
+            'chartRawWeights'   => json_encode($rawWeights),
+            'chartMovingAvg'    => json_encode($movingAverages)
         ]);
     }
 
@@ -70,6 +77,18 @@ class WeighInController extends Controller
 
         $this->weighInModel->logWeight($userId, $weightKg, $date, $notes);
         $this->setFlash('success', "Tartı kaydınız ({$weightKg} kg) başarıyla kaydedildi.");
+        $this->redirect('/weigh-in');
+    }
+
+    public function saveMeasurements(): void
+    {
+        $user = $this->requireAuth();
+        Security::verifyRequestCsrf();
+
+        $userId = (int)$user['id'];
+        $this->measurementModel->logMeasurement($userId, $_POST);
+
+        $this->setFlash('success', 'Vücut ölçüleriniz başarıyla kaydedildi.');
         $this->redirect('/weigh-in');
     }
 }

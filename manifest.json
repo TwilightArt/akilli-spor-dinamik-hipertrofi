@@ -2,7 +2,7 @@
   "name": "Akıllı Spor & Dinamik Hipertrofi",
   "short_name": "Hipertrofi",
   "description": "Dinamik hipertrofi ve akıllı antrenman platformu.",
-  "start_url": "/dashboard.html",
+  "start_url": "/",
   "scope": "/",
   "display": "standalone",
   "orientation": "portrait",

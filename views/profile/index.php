@@ -421,6 +421,77 @@ $calisthenicScore = (float)($user['calisthenic_score'] ?? ($tierInfo['composite_
         </form>
     </div>
 
+    <!-- Section 4: Data Portability (JSON Export & Import) -->
+    <div class="bg-slate-900/90 border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-xl backdrop-blur-xl space-y-6" x-data="{ importTab: 'file' }">
+        <div class="flex items-center justify-between border-b border-slate-800 pb-4">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-indigo-600/10 border border-indigo-500/20 text-indigo-400 flex items-center justify-center font-bold">
+                    <i class="fa-solid fa-file-export"></i>
+                </div>
+                <div>
+                    <h2 class="text-lg font-bold font-display text-white">Veri Yönetimi & Yedekleme (JSON)</h2>
+                    <p class="text-xs text-slate-400">Tartı kayıtları, vücut ölçüleri ve sporcu profil verilerinizi JSON olarak dışa aktarabilir veya yedekten geri yükleyebilirsiniz.</p>
+                </div>
+            </div>
+            <a href="/profile/export" class="hidden sm:inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-bold shadow-lg shadow-indigo-600/30 transition-all">
+                <i class="fa-solid fa-download text-xs"></i>
+                <span>Verilerimi İndir (.json)</span>
+            </a>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Export Card -->
+            <div class="p-5 rounded-2xl bg-slate-950/60 border border-slate-800 space-y-4">
+                <div class="flex items-center gap-2">
+                    <i class="fa-solid fa-cloud-arrow-down text-emerald-400"></i>
+                    <h3 class="text-sm font-bold text-white uppercase tracking-wider">Verileri Dışa Aktar</h3>
+                </div>
+                <p class="text-xs text-slate-400 leading-relaxed">
+                    Sistemdeki tüm biyometrik geçmişinizi, 365 günlük tartılarınızı ve vücut ölçülerinizi içeren standart JSON yedeğinizi anında indirin.
+                </p>
+                <div class="pt-2">
+                    <a href="/profile/export" class="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-slate-800 hover:bg-emerald-600 hover:text-white text-slate-200 border border-slate-700 hover:border-emerald-500 rounded-xl text-xs font-bold transition-all shadow-md">
+                        <i class="fa-solid fa-file-arrow-down"></i>
+                        <span>JSON Yedek İndir</span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Import Card -->
+            <div class="p-5 rounded-2xl bg-slate-950/60 border border-slate-800 space-y-4">
+                <div class="flex items-center gap-2">
+                    <i class="fa-solid fa-cloud-arrow-up text-brand-400"></i>
+                    <h3 class="text-sm font-bold text-white uppercase tracking-wider">Yedekten İçe Aktar</h3>
+                </div>
+                <p class="text-xs text-slate-400 leading-relaxed">
+                    Daha önce indirdiğiniz JSON yedek dosyasını yükleyin veya doğrudan JSON metnini yapıştırarak verilerinizi senkronize edin.
+                </p>
+
+                <form action="/profile/import" method="POST" enctype="multipart/form-data" class="space-y-3">
+                    <input type="hidden" name="csrf_token" value="<?= $csrfToken ?>">
+
+                    <div class="flex items-center gap-2 text-[11px] mb-2">
+                        <button type="button" @click="importTab = 'file'" :class="importTab === 'file' ? 'bg-brand-600/20 text-brand-400 border-brand-500/40' : 'text-slate-400 border-slate-800'" class="px-2.5 py-1 rounded-lg border font-semibold transition-all">Dosya Seç</button>
+                        <button type="button" @click="importTab = 'raw'" :class="importTab === 'raw' ? 'bg-brand-600/20 text-brand-400 border-brand-500/40' : 'text-slate-400 border-slate-800'" class="px-2.5 py-1 rounded-lg border font-semibold transition-all">Metin Yapıştır</button>
+                    </div>
+
+                    <div x-show="importTab === 'file'">
+                        <input type="file" name="backup_file" accept=".json,application/json" class="w-full text-xs text-slate-400 file:mr-3 file:py-2 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-slate-800 file:text-slate-300 hover:file:bg-brand-600 hover:file:text-white transition-all">
+                    </div>
+
+                    <div x-show="importTab === 'raw'" x-cloak>
+                        <textarea name="json_data" rows="3" placeholder='{"daily_weigh_ins": [...], "body_measurements": [...]}' class="w-full bg-slate-900 border border-slate-800 rounded-xl p-2.5 text-xs text-white placeholder-slate-600 focus:outline-none focus:border-brand-500 font-mono"></textarea>
+                    </div>
+
+                    <button type="submit" class="w-full py-2.5 px-4 bg-brand-600 hover:bg-brand-500 text-white font-bold text-xs rounded-xl shadow-lg shadow-brand-600/30 transition-all flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-upload text-xs"></i>
+                        <span>İçe Aktarımı Başlat</span>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
 </div>
 
 <script>

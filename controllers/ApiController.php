@@ -396,6 +396,8 @@ class ApiController extends Controller
         $stmtPast->execute(['uid' => $userId]);
         $recentWorkouts = $stmtPast->fetchAll();
 
+        $streakStats = (new \App\Models\WorkoutSession())->getUserStreakStats($userId);
+
         $this->jsonResponse([
             'success'         => true,
             'program'         => $program,
@@ -405,7 +407,8 @@ class ApiController extends Controller
             'latest_weight'   => $latestWeight,
             'bmi'             => $bmi,
             'baselines'       => $baselines,
-            'active_injuries' => $activeInjuries
+            'active_injuries' => $activeInjuries,
+            'streak_stats'    => $streakStats
         ]);
     }
 
@@ -1290,6 +1293,109 @@ class ApiController extends Controller
             'success' => true,
             'message' => "Tartı kaydınız ({$weightKg} kg) başarıyla kaydedildi.",
             'weight'  => $weightKg
+        ]);
+    }
+
+    /**
+     * GET /api/measurements
+     */
+    public function getMeasurements(): void
+    {
+        $user = $this->requireApiAuth();
+        $measurementModel = new \App\Models\BodyMeasurement();
+        $userId = (int)$user['id'];
+
+        $history = $measurementModel->getRecentHistory($userId, 30);
+        $deltas = $measurementModel->getDeltas($userId);
+
+        $this->jsonResponse([
+            'success'      => true,
+            'measurements' => $history,
+            'deltas'       => $deltas
+        ]);
+    }
+
+    /**
+     * POST /api/measurements
+     */
+    public function saveMeasurements(): void
+    {
+        $user = $this->requireApiAuth();
+        Security::verifyRequestCsrf();
+        $userId = (int)$user['id'];
+        $input = $this->getRequestData();
+
+        $measurementModel = new \App\Models\BodyMeasurement();
+        $id = $measurementModel->logMeasurement($userId, $input);
+
+        $this->jsonResponse([
+            'success' => true,
+            'id'      => $id,
+            'message' => 'Vücut ölçüleri başarıyla kaydedildi.'
+        ]);
+    }
+
+    /**
+     * GET /api/profile/export
+     */
+    public function exportData(): void
+    {
+        $user = $this->requireApiAuth();
+        $userId = (int)$user['id'];
+
+        $weighInModel = new \App\Models\DailyWeighIn();
+        $measurementModel = new \App\Models\BodyMeasurement();
+
+        $exportData = [
+            'version'           => '2.1',
+            'exported_at'       => date('Y-m-d H:i:s'),
+            'user'              => $user,
+            'daily_weigh_ins'   => $weighInModel->getRecentHistory($userId, 365),
+            'body_measurements' => $measurementModel->getRecentHistory($userId, 365)
+        ];
+
+        $this->jsonResponse([
+            'success' => true,
+            'data'    => $exportData
+        ]);
+    }
+
+    /**
+     * POST /api/profile/import
+     */
+    public function importData(): void
+    {
+        $user = $this->requireApiAuth();
+        Security::verifyRequestCsrf();
+        $userId = (int)$user['id'];
+        $input = $this->getRequestData();
+
+        $data = $input['data'] ?? $input;
+        if (empty($data) || !is_array($data)) {
+            $this->jsonResponse(['success' => false, 'error' => 'Geçersiz veri yükü.'], 400);
+        }
+
+        if (!empty($data['daily_weigh_ins']) && is_array($data['daily_weigh_ins'])) {
+            $weighInModel = new \App\Models\DailyWeighIn();
+            foreach ($data['daily_weigh_ins'] as $w) {
+                if (!empty($w['weight_kg']) && !empty($w['logged_date'])) {
+                    $weighInModel->logWeight($userId, (float)$w['weight_kg'], (string)$w['logged_date'], $w['notes'] ?? null);
+                }
+            }
+        }
+
+        if (!empty($data['body_measurements']) && is_array($data['body_measurements'])) {
+            $measurementModel = new \App\Models\BodyMeasurement();
+            foreach ($data['body_measurements'] as $m) {
+                if (!empty($m['measured_date'])) {
+                    $measurementModel->logMeasurement($userId, $m);
+                }
+            }
+        }
+
+        $this->jsonResponse([
+            'success' => true,
+            'message' => 'Yedek veriler başarıyla içe aktarıldı.'
         ]);
     }
 

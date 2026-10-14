@@ -120,6 +120,7 @@ $router->post('/workout/custom_program', [WorkoutController::class, 'createCusto
 // ----------------------------------------------------------------------------
 $router->get('/weigh-in', [WeighInController::class, 'index'], ['auth']);
 $router->post('/weigh-in', [WeighInController::class, 'save'], ['auth']);
+$router->post('/weigh-in/measurements', [WeighInController::class, 'saveMeasurements'], ['auth']);
 
 $router->get('/analytics', [AnalyticsController::class, 'index'], ['auth']);
 $router->post('/analytics/sample_data', [AnalyticsController::class, 'sampleData'], ['auth']);
@@ -132,6 +133,8 @@ $router->get('/workout/progress', [AnalyticsController::class, 'index'], ['auth'
 $router->get('/profile', [ProfileController::class, 'show'], ['auth']);
 $router->post('/profile', [ProfileController::class, 'update'], ['auth']);
 $router->post('/profile/password', [ProfileController::class, 'updatePassword'], ['auth']);
+$router->get('/profile/export', [ProfileController::class, 'export'], ['auth']);
+$router->post('/profile/import', [ProfileController::class, 'import'], ['auth']);
 
 $router->get('/calculators/1rm', [CalculatorController::class, 'index'], ['auth']);
 $router->get('/calculators/tdee', [CalculatorController::class, 'tdee'], ['auth']);
@@ -173,8 +176,12 @@ $router->get('/api/exercise_progress', [ApiController::class, 'exerciseProgress'
 $router->get('/api/profile', [ApiController::class, 'profile'], ['api_auth']);
 $router->post('/api/profile', [ApiController::class, 'updateProfile'], ['api_auth']);
 $router->post('/api/profile/password', [ApiController::class, 'updatePassword'], ['api_auth']);
+$router->get('/api/profile/export', [ApiController::class, 'exportData'], ['api_auth']);
+$router->post('/api/profile/import', [ApiController::class, 'importData'], ['api_auth']);
 $router->get('/api/weigh-in', [ApiController::class, 'weighIn'], ['api_auth']);
 $router->post('/api/weigh-in', [ApiController::class, 'saveWeighIn'], ['api_auth']);
+$router->get('/api/measurements', [ApiController::class, 'getMeasurements'], ['api_auth']);
+$router->post('/api/measurements', [ApiController::class, 'saveMeasurements'], ['api_auth']);
 
 // 5. Calculators API
 $router->get('/api/calculators/1rm', [ApiController::class, 'calculator1rm']);

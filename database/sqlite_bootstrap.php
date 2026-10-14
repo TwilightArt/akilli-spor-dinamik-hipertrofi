@@ -166,6 +166,23 @@ class SqliteBootstrap
                 FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
             );
 
+            CREATE TABLE IF NOT EXISTS body_measurements (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER NOT NULL,
+                measured_date TEXT NOT NULL,
+                neck_cm REAL NULL,
+                shoulder_cm REAL NULL,
+                chest_cm REAL NULL,
+                arm_cm REAL NULL,
+                waist_cm REAL NULL,
+                hip_cm REAL NULL,
+                thigh_cm REAL NULL,
+                calf_cm REAL NULL,
+                body_fat_pct REAL NULL,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+            );
+
             CREATE TABLE IF NOT EXISTS workout_logs (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 user_id INTEGER NOT NULL,

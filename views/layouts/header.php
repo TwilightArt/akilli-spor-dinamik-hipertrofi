@@ -13,7 +13,23 @@ unset($_SESSION['flash']);
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Akıllı spor ve dinamik hipertrofi platformu ile kişiselleştirilmiş antrenman programları oluşturun ve ilerlemenizi canlı olarak takip edin.">
     <meta name="theme-color" content="#e11d48">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Hipertrofi">
     <link rel="manifest" href="/manifest.json">
+    <link rel="apple-touch-icon" href="/assets/icons/icon-192x192.png">
+
+    <!-- PWA Service Worker Registration -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function() {
+                navigator.serviceWorker.register('/sw.js').catch(function(err) {
+                    console.warn('PWA SW registration failed:', err);
+                });
+            });
+        }
+    </script>
 
     <!-- Open Graph -->
     <meta property="og:title" content="<?= Security::escape($pageTitle ?? 'Akıllı Spor & Dinamik Hipertrofi Platformu') ?>">
@@ -113,6 +129,59 @@ unset($_SESSION['flash']);
     <link rel="stylesheet" href="/assets/css/style.css">
 </head>
 <body class="bg-darkbg text-slate-100 min-h-screen flex flex-col antialiased selection:bg-brand-500 selection:text-white">
+
+    <!-- PWA Install Prompt Banner -->
+    <div x-data="pwaInstallBanner()" x-show="canInstall" x-cloak class="bg-gradient-to-r from-rose-950/95 via-slate-900/95 to-indigo-950/95 border-b border-brand-500/30 px-4 py-2.5 text-xs text-white flex items-center justify-between gap-3 sticky top-0 z-[60] backdrop-blur-md shadow-lg">
+        <div class="flex items-center gap-2.5">
+            <div class="w-8 h-8 rounded-lg bg-brand-600 flex items-center justify-center font-bold text-white shadow">
+                <i class="fa-solid fa-mobile-screen-button text-sm"></i>
+            </div>
+            <div>
+                <span class="font-bold text-white">Uygulamayı Ana Ekrana Ekleyin</span>
+                <span class="text-slate-300 ml-1.5 hidden sm:inline">• Hızlı erişim, çevrimdışı önbellek ve tam ekran antrenman deneyimi.</span>
+            </div>
+        </div>
+        <div class="flex items-center gap-2">
+            <button @click="installApp()" class="px-3 py-1.5 bg-brand-600 hover:bg-brand-500 text-white font-bold rounded-lg shadow-md transition-all flex items-center gap-1.5 text-xs">
+                <i class="fa-solid fa-download text-[10px]"></i> Ekle
+            </button>
+            <button @click="dismissBanner()" aria-label="Kapat" class="p-1.5 text-slate-400 hover:text-white rounded-lg transition-colors">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+    </div>
+    <script>
+    function pwaInstallBanner() {
+        return {
+            canInstall: false,
+            deferredPrompt: null,
+            init() {
+                window.addEventListener('beforeinstallprompt', (e) => {
+                    e.preventDefault();
+                    this.deferredPrompt = e;
+                    if (!sessionStorage.getItem('pwa_prompt_dismissed')) {
+                        this.canInstall = true;
+                    }
+                });
+                window.addEventListener('appinstalled', () => {
+                    this.canInstall = false;
+                    this.deferredPrompt = null;
+                });
+            },
+            async installApp() {
+                if (!this.deferredPrompt) return;
+                this.deferredPrompt.prompt();
+                const choice = await this.deferredPrompt.userChoice;
+                this.deferredPrompt = null;
+                this.canInstall = false;
+            },
+            dismissBanner() {
+                this.canInstall = false;
+                sessionStorage.setItem('pwa_prompt_dismissed', '1');
+            }
+        };
+    }
+    </script>
 
     <!-- Top Navigation Header -->
     <header class="sticky top-0 z-50 bg-slate-900/80 backdrop-blur-md border-b border-slate-800">

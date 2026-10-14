@@ -93,6 +93,40 @@ elseif ($bmi >= 30.0) $bmiCategory = 'Yüksek';
             </div>
         </div>
 
+        <!-- ANTRENMAN STREAK & SÜREKLİLİK PANELİ -->
+        <div class="mt-6 p-4 rounded-2xl bg-gradient-to-r from-orange-950/60 via-slate-950 to-slate-950 border border-orange-500/30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div class="flex items-center gap-3.5">
+                <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-orange-600 to-amber-500 flex items-center justify-center text-white text-xl shadow-lg shadow-orange-500/30 shrink-0">
+                    <i class="fa-solid fa-fire animate-pulse text-yellow-200"></i>
+                </div>
+                <div>
+                    <div class="flex items-center gap-2">
+                        <span class="text-xs font-bold uppercase tracking-wider text-orange-400">Antrenman Serisi (Streak)</span>
+                        <span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-orange-500/20 text-orange-300 border border-orange-500/30">
+                            <?= ($streakStats['streak_weeks'] ?? 0) > 0 ? ($streakStats['streak_weeks'] . ' Hafta Aralıksız!') : 'Yeni Başlangıç' ?>
+                        </span>
+                    </div>
+                    <p class="text-xs text-slate-300 mt-0.5">
+                        Bu hafta <b class="text-orange-400 font-mono"><?= (int)($streakStats['this_week_count'] ?? 0) ?></b> seans tamamlandı. Toplam <b class="text-emerald-400 font-mono"><?= (int)($streakStats['total_completed'] ?? 0) ?></b> tamamlanmış oturum kaydınız var.
+                    </p>
+                </div>
+            </div>
+            <div class="flex items-center gap-2.5 self-stretch sm:self-auto justify-end border-t sm:border-t-0 border-slate-800/80 pt-2 sm:pt-0">
+                <div class="text-center px-3 py-1.5 bg-slate-900 rounded-xl border border-slate-800">
+                    <span class="text-[9px] uppercase font-bold text-slate-500 block">Bu Hafta</span>
+                    <span class="text-sm font-black font-mono text-orange-400"><?= (int)($streakStats['this_week_count'] ?? 0) ?></span>
+                </div>
+                <div class="text-center px-3 py-1.5 bg-slate-900 rounded-xl border border-slate-800">
+                    <span class="text-[9px] uppercase font-bold text-slate-500 block">Hafta Serisi</span>
+                    <span class="text-sm font-black font-mono text-amber-400"><?= (int)($streakStats['streak_weeks'] ?? 0) ?></span>
+                </div>
+                <div class="text-center px-3 py-1.5 bg-slate-900 rounded-xl border border-slate-800">
+                    <span class="text-[9px] uppercase font-bold text-slate-500 block">Toplam İdman</span>
+                    <span class="text-sm font-black font-mono text-emerald-400"><?= (int)($streakStats['total_completed'] ?? 0) ?></span>
+                </div>
+            </div>
+        </div>
+
         <!-- Biometrics & Metrics 4-Box Grid -->
         <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-6">
             <!-- Height -->
@@ -484,7 +518,191 @@ elseif ($bmi >= 30.0) $bmiCategory = 'Yüksek';
             </div>
         <?php endif; ?>
     </div>
+
+    <!-- GÜNLÜK ANTRENMAN DEFTERİ (OFFLINE-FIRST LOCALSTORAGE JOURNAL) -->
+    <div class="bg-slate-900/90 border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-2xl backdrop-blur-xl space-y-6" x-data="workoutJournal()">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-800 pb-4">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-purple-500/20 text-purple-400 flex items-center justify-center font-bold border border-purple-500/30">
+                    <i class="fa-solid fa-book-journal-whills text-lg"></i>
+                </div>
+                <div>
+                    <h2 class="text-lg font-bold font-display text-white">Günlük Antrenman Defteri & Seans Notları</h2>
+                    <p class="text-xs text-slate-400">Çevrimdışı öncelikli (Offline-First) antrenman hissiyatı, enerji, uyku ve pump takibi.</p>
+                </div>
+            </div>
+            <button 
+                type="button" 
+                @click="showForm = !showForm" 
+                class="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs shadow-lg shadow-purple-600/20 flex items-center gap-2 transition-all w-fit">
+                <i :class="showForm ? 'fa-solid fa-chevron-up' : 'fa-solid fa-plus'"></i>
+                <span x-text="showForm ? 'Formu Kapat' : 'Yeni Not Ekle'"></span>
+            </button>
+        </div>
+
+        <!-- Add Journal Note Form -->
+        <div x-show="showForm" x-transition.duration.200ms class="bg-slate-950 p-5 rounded-2xl border border-slate-800 space-y-4">
+            <div class="grid grid-cols-1 sm:grid-cols-4 gap-4">
+                <!-- Tarih -->
+                <div>
+                    <label class="block text-[11px] font-bold text-slate-400 uppercase mb-1">Tarih</label>
+                    <input type="date" x-model="form.date" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:border-purple-500 outline-none">
+                </div>
+
+                <!-- Enerji Düzeyi (1-5) -->
+                <div>
+                    <label class="block text-[11px] font-bold text-slate-400 uppercase mb-1">Enerji Düzeyi (1-5)</label>
+                    <div class="flex items-center gap-1.5 pt-1">
+                        <template x-for="n in 5" :key="n">
+                            <button type="button" @click="form.energy = n" class="text-sm transition-transform hover:scale-125 focus:outline-none">
+                                <i class="fa-solid fa-bolt" :class="n <= form.energy ? 'text-amber-400' : 'text-slate-700'"></i>
+                            </button>
+                        </template>
+                        <span class="text-xs font-mono font-bold text-slate-400 ml-1" x-text="form.energy + '/5'"></span>
+                    </div>
+                </div>
+
+                <!-- Uyku Süresi & Kalite -->
+                <div>
+                    <label class="block text-[11px] font-bold text-slate-400 uppercase mb-1">Uyku (Saat / Kalite)</label>
+                    <div class="flex gap-2">
+                        <input type="number" x-model.number="form.sleepHours" min="3" max="14" step="0.5" placeholder="Saat" class="w-20 bg-slate-900 border border-slate-800 rounded-xl px-2 py-2 text-xs text-white text-center font-mono">
+                        <select x-model="form.sleepQuality" class="flex-1 bg-slate-900 border border-slate-800 rounded-xl px-2 py-2 text-xs text-white">
+                            <option value="harika">Harika</option>
+                            <option value="iyi">İyi</option>
+                            <option value="orta">Orta</option>
+                            <option value="kötü">Yetersiz</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Kas Pump Hissi (1-5) -->
+                <div>
+                    <label class="block text-[11px] font-bold text-slate-400 uppercase mb-1">Pump / Dolgunluk (1-5)</label>
+                    <div class="flex items-center gap-1.5 pt-1">
+                        <template x-for="p in 5" :key="p">
+                            <button type="button" @click="form.pump = p" class="text-sm transition-transform hover:scale-125 focus:outline-none">
+                                <i class="fa-solid fa-fire" :class="p <= form.pump ? 'text-rose-500' : 'text-slate-700'"></i>
+                            </button>
+                        </template>
+                        <span class="text-xs font-mono font-bold text-slate-400 ml-1" x-text="form.pump + '/5'"></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Note Textarea -->
+            <div>
+                <label class="block text-[11px] font-bold text-slate-400 uppercase mb-1">Antrenman Notu & Hissiyat</label>
+                <textarea 
+                    x-model="form.note" 
+                    rows="3" 
+                    placeholder="Bugünkü antrenmanda ağırlıklar nasıl hissettirdi? Odaklanma nasıldı? Formda zorlandığın yerler oldu mu?"
+                    class="w-full bg-slate-900 border border-slate-800 rounded-xl p-3 text-xs text-white placeholder-slate-500 focus:border-purple-500 outline-none"></textarea>
+            </div>
+
+            <div class="flex justify-end gap-2">
+                <button type="button" @click="showForm = false" class="px-4 py-2 rounded-xl bg-slate-900 text-slate-400 text-xs font-bold hover:text-white">İptal</button>
+                <button type="button" @click="saveEntry()" class="px-5 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold shadow-md shadow-purple-600/30">
+                    Notu Kaydet
+                </button>
+            </div>
+        </div>
+
+        <!-- Journal Entries List -->
+        <div class="space-y-3">
+            <template x-for="(entry, idx) in entries" :key="entry.id || idx">
+                <div class="p-4 rounded-2xl bg-slate-950 border border-slate-800/80 hover:border-slate-700 transition-all space-y-2">
+                    <div class="flex items-center justify-between gap-3">
+                        <div class="flex flex-wrap items-center gap-2">
+                            <span class="px-2.5 py-1 rounded-lg bg-slate-900 border border-slate-800 font-mono text-xs font-bold text-white flex items-center gap-1.5">
+                                <i class="fa-regular fa-calendar text-slate-500 text-[10px]"></i>
+                                <span x-text="entry.date"></span>
+                            </span>
+                            <span class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-amber-500/10 text-amber-300 border border-amber-500/20 flex items-center gap-1">
+                                <i class="fa-solid fa-bolt text-[9px]"></i> Enerji: <span x-text="entry.energy + '/5'"></span>
+                            </span>
+                            <span class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-indigo-500/10 text-indigo-300 border border-indigo-500/20 flex items-center gap-1">
+                                <i class="fa-solid fa-moon text-[9px]"></i> Uyku: <span x-text="entry.sleepHours + 's (' + entry.sleepQuality + ')'"></span>
+                            </span>
+                            <span class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-rose-500/10 text-rose-300 border border-rose-500/20 flex items-center gap-1">
+                                <i class="fa-solid fa-fire text-[9px]"></i> Pump: <span x-text="entry.pump + '/5'"></span>
+                            </span>
+                        </div>
+                        <button type="button" @click="deleteEntry(idx)" class="text-slate-500 hover:text-rose-400 text-xs transition-colors p-1" title="Notu Sil">
+                            <i class="fa-solid fa-trash-can"></i>
+                        </button>
+                    </div>
+                    <p class="text-xs text-slate-300 whitespace-pre-line leading-relaxed" x-text="entry.note"></p>
+                </div>
+            </template>
+
+            <div x-show="entries.length === 0" class="text-center py-8 text-slate-500 text-xs border border-dashed border-slate-800 rounded-2xl">
+                <i class="fa-solid fa-pen-nib text-xl text-slate-600 mb-2 block"></i>
+                Henüz bir antrenman notu kaydedilmemiş. İlk notunuzu eklemek için yukarıdaki butona tıklayın.
+            </div>
+        </div>
+    </div>
 </div>
+
+<script>
+function workoutJournal() {
+    return {
+        showForm: false,
+        entries: [],
+        form: {
+            date: new Date().toISOString().slice(0, 10),
+            energy: 4,
+            sleepHours: 8,
+            sleepQuality: 'iyi',
+            pump: 4,
+            note: ''
+        },
+
+        init() {
+            try {
+                const stored = localStorage.getItem('hipertrofi_workout_journal');
+                if (stored) {
+                    this.entries = JSON.parse(stored) || [];
+                }
+            } catch (e) {
+                this.entries = [];
+            }
+        },
+
+        saveEntry() {
+            if (!this.form.note.trim()) {
+                alert('Lütfen antrenman notunuzu yazın.');
+                return;
+            }
+
+            const newEntry = {
+                id: Date.now(),
+                date: this.form.date,
+                energy: this.form.energy,
+                sleepHours: this.form.sleepHours,
+                sleepQuality: this.form.sleepQuality,
+                pump: this.form.pump,
+                note: this.form.note.trim(),
+                createdAt: new Date().toISOString()
+            };
+
+            this.entries.unshift(newEntry);
+            localStorage.setItem('hipertrofi_workout_journal', JSON.stringify(this.entries));
+
+            // Reset form
+            this.form.note = '';
+            this.showForm = false;
+        },
+
+        deleteEntry(idx) {
+            if (confirm('Bu antrenman notunu silmek istediğinizden emin misiniz?')) {
+                this.entries.splice(idx, 1);
+                localStorage.setItem('hipertrofi_workout_journal', JSON.stringify(this.entries));
+            }
+        }
+    };
+}
+</script>
 
 
 

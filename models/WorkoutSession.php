@@ -71,4 +71,75 @@ class WorkoutSession extends Model
         $row = $stmt->fetch();
         return $row ?: null;
     }
+
+    /**
+     * Get user streak stats (this week completed sessions, consecutive active weeks, total completed)
+     */
+    public function getUserStreakStats(int $userId): array
+    {
+        $stmt = $this->db->prepare("
+            SELECT ended_at 
+            FROM workout_sessions 
+            WHERE user_id = :uid AND ended_at IS NOT NULL 
+            ORDER BY ended_at DESC
+        ");
+        $stmt->execute(['uid' => $userId]);
+        $dates = $stmt->fetchAll(\PDO::FETCH_COLUMN) ?: [];
+
+        $totalCompleted = count($dates);
+
+        // This week count (Monday this week to Sunday)
+        $mondayThisWeek = strtotime('monday this week 00:00:00');
+        $thisWeekCount = 0;
+        foreach ($dates as $d) {
+            if (strtotime((string)$d) >= $mondayThisWeek) {
+                $thisWeekCount++;
+            }
+        }
+
+        // Consecutive weeks calculation
+        // Group dates into Year-Week format ('o-W' in PHP handles ISO-8601 week numbers correctly)
+        $activeWeeks = [];
+        foreach ($dates as $d) {
+            $weekKey = date('o-W', strtotime((string)$d));
+            $activeWeeks[$weekKey] = true;
+        }
+
+        $streakWeeks = 0;
+        $currentWeekTime = strtotime('this week monday 00:00:00');
+        $currentWeekKey = date('o-W', $currentWeekTime);
+
+        // If user worked out this week, start from this week; otherwise check last week
+        if (!empty($activeWeeks[$currentWeekKey])) {
+            $streakWeeks = 1;
+            $checkTime = strtotime('-1 week', $currentWeekTime);
+        } else {
+            // Check if last week had workouts
+            $lastWeekTime = strtotime('-1 week', $currentWeekTime);
+            $lastWeekKey = date('o-W', $lastWeekTime);
+            if (!empty($activeWeeks[$lastWeekKey])) {
+                $streakWeeks = 1;
+                $checkTime = strtotime('-1 week', $lastWeekTime);
+            } else {
+                $checkTime = null;
+            }
+        }
+
+        // Trace backwards week by week
+        while ($checkTime !== null) {
+            $key = date('o-W', $checkTime);
+            if (!empty($activeWeeks[$key])) {
+                $streakWeeks++;
+                $checkTime = strtotime('-1 week', $checkTime);
+            } else {
+                break;
+            }
+        }
+
+        return [
+            'this_week_count' => $thisWeekCount,
+            'streak_weeks'    => $streakWeeks,
+            'total_completed' => $totalCompleted
+        ];
+    }
 }
