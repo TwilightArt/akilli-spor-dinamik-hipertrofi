@@ -475,7 +475,7 @@ class GeminiWorkoutService
                 'days' => [
                     [
                         'day_of_week' => 1,
-                        'focus_area'  => 'Ãœst VÃ¼cut A',
+                        'focus_area'  => 'Üst Vücut A',
                         'exercises'   => [
                             ['exercise_id' => $pick('push_horizontal', 4), 'order_in_session' => 1, 'target_sets' => 3, 'target_reps_min' => 8, 'target_reps_max' => 12],
                             ['exercise_id' => $pick('pull_horizontal', 20), 'order_in_session' => 2, 'target_sets' => 3, 'target_reps_min' => 8, 'target_reps_max' => 12],
@@ -485,7 +485,7 @@ class GeminiWorkoutService
                     ],
                     [
                         'day_of_week' => 2,
-                        'focus_area'  => 'Alt VÃ¼cut A',
+                        'focus_area'  => 'Alt Vücut A',
                         'exercises'   => [
                             ['exercise_id' => $pick('squat', 30), 'order_in_session' => 1, 'target_sets' => 3, 'target_reps_min' => 8, 'target_reps_max' => 12],
                             ['exercise_id' => $pick('hinge', 38), 'order_in_session' => 2, 'target_sets' => 3, 'target_reps_min' => 8, 'target_reps_max' => 12],
@@ -494,7 +494,7 @@ class GeminiWorkoutService
                     ],
                     [
                         'day_of_week' => 4,
-                        'focus_area'  => 'Ãœst VÃ¼cut B',
+                        'focus_area'  => 'Üst Vücut B',
                         'exercises'   => [
                             ['exercise_id' => $pick('pull_vertical', 26), 'order_in_session' => 1, 'target_sets' => 3, 'target_reps_min' => 6, 'target_reps_max' => 10],
                             ['exercise_id' => $pick('push_horizontal', 8), 'order_in_session' => 2, 'target_sets' => 3, 'target_reps_min' => 8, 'target_reps_max' => 12],
@@ -504,7 +504,7 @@ class GeminiWorkoutService
                     ],
                     [
                         'day_of_week' => 5,
-                        'focus_area'  => 'Alt VÃ¼cut B',
+                        'focus_area'  => 'Alt Vücut B',
                         'exercises'   => [
                             ['exercise_id' => $pick('squat', 31), 'order_in_session' => 1, 'target_sets' => 3, 'target_reps_min' => 10, 'target_reps_max' => 15],
                             ['exercise_id' => $pick('hinge', 36), 'order_in_session' => 2, 'target_sets' => 3, 'target_reps_min' => 12, 'target_reps_max' => 15],
@@ -520,7 +520,7 @@ class GeminiWorkoutService
             'days' => [
                 [
                     'day_of_week' => 1,
-                    'focus_area'  => 'TÃ¼m VÃ¼cut (Pazartesi)',
+                    'focus_area'  => 'Tüm Vücut (Pazartesi)',
                     'exercises'   => [
                         ['exercise_id' => $pick('squat', 30), 'order_in_session' => 1, 'target_sets' => 3, 'target_reps_min' => 8, 'target_reps_max' => 12],
                         ['exercise_id' => $pick('push_horizontal', 4), 'order_in_session' => 2, 'target_sets' => 3, 'target_reps_min' => 8, 'target_reps_max' => 12],
@@ -530,7 +530,7 @@ class GeminiWorkoutService
                 ],
                 [
                     'day_of_week' => 3,
-                    'focus_area'  => 'TÃ¼m VÃ¼cut (Ã‡arÅŸamba)',
+                    'focus_area'  => 'Tüm Vücut (Çarşamba)',
                     'exercises'   => [
                         ['exercise_id' => $pick('hinge', 38), 'order_in_session' => 1, 'target_sets' => 3, 'target_reps_min' => 8, 'target_reps_max' => 12],
                         ['exercise_id' => $pick('push_vertical', 14), 'order_in_session' => 2, 'target_sets' => 3, 'target_reps_min' => 8, 'target_reps_max' => 12],
@@ -540,7 +540,7 @@ class GeminiWorkoutService
                 ],
                 [
                     'day_of_week' => 5,
-                    'focus_area'  => 'TÃ¼m VÃ¼cut (Cuma)',
+                    'focus_area'  => 'Tüm Vücut (Cuma)',
                     'exercises'   => [
                         ['exercise_id' => $pick('squat', 31), 'order_in_session' => 1, 'target_sets' => 3, 'target_reps_min' => 10, 'target_reps_max' => 15],
                         ['exercise_id' => $pick('push_horizontal', 8), 'order_in_session' => 2, 'target_sets' => 3, 'target_reps_min' => 8, 'target_reps_max' => 12],
