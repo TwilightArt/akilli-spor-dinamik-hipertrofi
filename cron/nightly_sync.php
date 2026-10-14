@@ -94,7 +94,11 @@ foreach ($users as $user) {
         // Halve sets for all program exercises (minimum 2 sets)
         $stmtAdjustSets = $db->prepare("
             UPDATE program_exercises 
-            SET target_sets = GREATEST(:min_sets, FLOOR(target_sets * :reduction_factor))
+            SET target_sets = CASE
+                WHEN CAST(target_sets * :reduction_factor AS SIGNED) < :min_sets
+                THEN :min_sets
+                ELSE CAST(target_sets * :reduction_factor AS SIGNED)
+            END
             WHERE program_day_id IN (SELECT id FROM program_days WHERE program_id = :pid)
         ");
         $stmtAdjustSets->execute([
@@ -115,12 +119,13 @@ foreach ($users as $user) {
 
     // 4. Weigh-In Moving Average & Weekly Volume Adaptation
     // Check if adaptation already ran this week (using user_calibration_log as a lock)
+    $weekStart = date('Y-m-d 00:00:00', strtotime('monday this week'));
     $stmtCheckLock = $db->prepare("
         SELECT id FROM user_calibration_log 
         WHERE user_id = :uid AND reason LIKE 'Haftalık Adaptasyon%' 
-        AND created_at >= date('now', 'weekday 0', '-7 days')
+        AND created_at >= :week_start
     ");
-    $stmtCheckLock->execute(['uid' => $userId]);
+    $stmtCheckLock->execute(['uid' => $userId, 'week_start' => $weekStart]);
     $alreadyAdapted = (bool)$stmtCheckLock->fetch();
 
     $isWeeklyAdaptationDay = ((int)date('N') === 7);
@@ -131,7 +136,11 @@ foreach ($users as $user) {
             echo "  -> Hızlı kilo kaybı tespit edildi (" . round($weeklyRate * 100, 2) . "%). Hacim %25 dengeleniyor.\n";
             $stmtCutSets = $db->prepare("
                 UPDATE program_exercises 
-                SET target_sets = GREATEST(:min_sets, ROUND(target_sets * 0.75))
+                SET target_sets = CASE
+                    WHEN ROUND(target_sets * 0.75) < :min_sets
+                    THEN :min_sets
+                    ELSE ROUND(target_sets * 0.75)
+                END
                 WHERE program_day_id IN (SELECT id FROM program_days WHERE program_id = :pid)
             ");
             $stmtCutSets->execute([
@@ -143,7 +152,11 @@ foreach ($users as $user) {
         } elseif ($weeklyRate >= 0.0) {
             $stmtIncVol = $db->prepare("
                 UPDATE program_exercises 
-                SET target_reps_max = LEAST(25, target_reps_max + 1)
+                SET target_reps_max = CASE
+                    WHEN target_reps_max + 1 > 25
+                    THEN 25
+                    ELSE target_reps_max + 1
+                END
                 WHERE program_day_id IN (SELECT id FROM program_days WHERE program_id = :pid)
             ");
             $stmtIncVol->execute(['pid' => $programId]);
